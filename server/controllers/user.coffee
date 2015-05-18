@@ -173,6 +173,38 @@ module.exports = (model, crudControllerFactory) ->
                       res.json 200, {message: msg}
 
 
+  getResetToken = (req, res) ->
+    if req.body.email?
+      model.findOneBy 'email', req.body.email, req.systemId, (err, user) ->
+        if err
+          res.json 500, {message: err}
+        else if not user?
+          res.json 404, {message: "Could not find account for that e-mail"}
+        else
+          model.generateToken (err, token) ->
+            if err
+              res.json 500, {message: err}
+            else if not token
+              res.json 500, {message: "could not generate reset token"}
+            else
+              updateObj =
+                token: token
+                systemId: req.systemId
+
+              model.update user._id, updateObj, (err, obj) ->
+                if err
+                  res.json 500, {message: "error saving token to user " + err}
+                else
+                  resetObj =
+                    host: req.protocol + "://" + req.host
+                    email: user.email
+                    token: token
+                    _id: user._id
+
+                  res.json 200, resetObj
+    else
+      res.json 500, { message:"No email passed." }
+
   exports = gi.common.extend {}, crud
   exports.index = index
   exports.show = findById
@@ -183,6 +215,7 @@ module.exports = (model, crudControllerFactory) ->
   exports.destroyMe = destroyMe
   exports.generateAPISecretForMe = generateAPISecretForMe
   exports.resetPassword = resetPassword
+  exports.getResetToken = getResetToken
   exports.checkResetToken = checkResetToken
   exports.verify = verify
   exports

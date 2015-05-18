@@ -18,6 +18,10 @@ Client Unit tests use Mocha, Karma
 Server Integration tests use Cucumber.js and supertest
 
 ### Release Notes
+v1.0.10
+- added /api/user/getResetToken for admins
+- use gi-util 1.0.9 which adds count() functionality to find query callbacks
+
 v1.0.9
 - use gi-util 1.0.8 which fixes geo ip issue over ssl
 

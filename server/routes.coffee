@@ -18,6 +18,9 @@ configure = (app, rest) ->
   app.post '/api/user/resetPassword'
   , app.middleware.publicAction, app.controllers.user.resetPassword
 
+  app.post '/api/user/getResetToken'
+  , app.middleware.adminAction, app.controllers.user.getResetToken
+
   app.post '/api/user/verify'
   , app.middleware.userAction, app.controllers.user.verify
 
