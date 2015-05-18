@@ -1,7 +1,7 @@
 {
   "author": "David Bochenski",
   "name": "gi-security",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "main": "./server/index.coffee",
   "scripts": {
     "test": "grunt ci"
@@ -16,7 +16,7 @@
   "dependencies": {
     "coffee-script": "~1.4.0",
     "passport": "~0.1.15",
-    "gi-util": "~1.0.8",
+    "gi-util": "~1.0.9",
     "bcrypt": "~0.7.5",
     "underscore": "~1.4.4",
     "moment": "~2.0.0",
