@@ -1,5 +1,5 @@
 {
-  "author": "David Bochenski",
+  "author": "David BochenskiSR",
   "name": "gi-security",
   "version": "1.4.10",
   "main": "./server/index.coffee",
@@ -14,19 +14,20 @@
     "node": ">= 0.10.0"
   },
   "dependencies": {
-    "coffee-script": "~1.4.0",
-    "passport": "~0.1.15",
-    "gi-util": "~1.9.7",
-    "bcrypt": "1.0.3",
-    "underscore": "~1.4.4",
-    "moment": "~2.0.0",
+    "async": "~0.2.9",
     "aws-sdk": "~1.4.0",
-    "async": "~0.2.9"
+    "bcrypt": "1.0.3",
+    "coffee-script": "~1.4.0",
+    "gi-util": "~1.9.7",
+    "grunt": "^1.0.2",
+    "moment": "~2.0.0",
+    "passport": "~0.1.15",
+    "underscore": "~1.4.4"
   },
   "devDependencies": {
     "coffee-script": "^1.9.1",
     "del": "^1.1.1",
-    "gulp": "^3.8.11",
+    "gulp": "^3.9.1",
     "gulp-angular-templatecache": "^1.5.0",
     "gulp-coffee": "^2.3.1",
     "gulp-coffeelint": "^0.4.0",
