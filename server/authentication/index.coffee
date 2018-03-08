@@ -36,6 +36,8 @@ module.exports = (app) ->
       (cb) ->
         getSecuritySetting 'loginWithFacebook', 'facebook', req, cb
       , (cb) ->
+        getSecuritySetting 'loginWithBasic', 'Basic', req, cb
+      , (cb) ->
         getSecuritySetting 'loginWithHmac', 'Hmac', req, cb
       , (cb) ->
         getSecuritySetting 'loginWithPlay', 'Play', req, cb
@@ -77,6 +79,7 @@ module.exports = (app) ->
 
   findUser = (req, res, next) ->
     if req.isAuthenticated()
+      #console.log("authentication/index.coffee - Inside findUser() - Already Authenticated")
       addExtraUserInfo(req, res, next)
     else
       exports._hmacAuth req, res, (err, user) =>
@@ -87,7 +90,11 @@ module.exports = (app) ->
             if user and (not err)
               addExtraUserInfo(req, res, next)
             else
-              next()
+              exports._basicAuth req, res, (err, user) -> ############################################## I ADDED THIS
+                if user and (not err)
+                  addExtraUserInfo(req, res, next)
+                else
+                  next()
 
   publicAction = (req, res, next) ->
     exports._systemCheck req, res, next
@@ -127,15 +134,41 @@ module.exports = (app) ->
           res.json 403, {message: 'Public user registration is not enabled'}
 
   hmacAuth = (req, res, next) ->
+    #console.log("authentication/index.coffee - Inside hmacAuth()")
     if _.indexOf(req.strategies, 'Hmac') is -1
+      #console.log("authentication/index.coffee - Inside hmacAuth() - NOT SUPPORTED")
       next 'Hmac strategy not supported', null
     else
+      #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - calling passport.authenticate()")
       passport.authenticate('hmac', (err, user, info) ->
         if err
+          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
           next err, null
         else if not user
+          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
           next info, null
         else
+          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
+          req.user = user
+          next null, user
+      )(req, res, next)
+
+  basicAuth = (req, res, next) -> ############################################## I ADDED THIS
+    #console.log("authentication/index.coffee - Inside basicAuth()")
+    if _.indexOf(req.strategies, 'Basic') is -1
+      #console.log("authentication/index.coffee - Inside basicAuth() - NOT SUPPORTED")
+      next 'Basic strategy not supported', null
+    else
+      #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - calling passport.authenticate()")
+      passport.authenticate('basic', (err, user, info) ->
+        if err
+          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
+          next err, null
+        else if not user
+          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
+          next info, null
+        else
+          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
           req.user = user
           next null, user
       )(req, res, next)
@@ -153,7 +186,6 @@ module.exports = (app) ->
           req.user = user
           next null, user
       )(req, res, next)
-
 
   userAction = (req, res, next) ->
     exports.publicAction req, res, () =>
@@ -178,19 +210,6 @@ module.exports = (app) ->
         else
           res.json 401, {}
 
-  roleAction = (role) ->
-    (req, res, next) ->
-      userAction req, res, () ->
-        isInRole role, req.user, (ok) ->
-          if ok
-            next()
-          else
-            isAdmin req.user, (admin) ->
-              if admin
-                next()
-              else
-                res.json 401, {}
-
   isInRole = (role, user, callback) ->
     result = false
     settingName = role + 'RoleName'
@@ -201,7 +220,7 @@ module.exports = (app) ->
         roleName = result.value
       app.models.roles.findOneBy 'name', roleName, user.systemId
       , (err, obj) ->
-        if obj?._id? and not err
+        if obj and not err
           _.each(user.roles, (role) ->
             if role.toString() is obj._id.toString()
               result = true
@@ -227,7 +246,6 @@ module.exports = (app) ->
     return
 
   logout = (req, res) ->
-    res.clearCookie('connect.sid')
     req.logout()
     res.send 200
 
@@ -253,7 +271,6 @@ module.exports = (app) ->
   #Export the authentiaction action middleware
     publicAction: publicAction
     publicReadAction: publicReadAction
-    roleAction: roleAction
     userAction: userAction
     adminAction: adminAction
     sysAdminAction: sysAdminAction
@@ -261,6 +278,7 @@ module.exports = (app) ->
     _getSystemStrategies: getSystemStrategies
     _systemCheck: systemCheck
     _hmacAuth: hmacAuth
+    _basicAuth: basicAuth
     _playAuth: playAuth
     _findUser: findUser
 

@@ -23,13 +23,20 @@ Strategy = (options, verify) ->
 # Inherit from `passport.Strategy`.
 util.inherits Strategy, passport.Strategy
 
-
 Strategy::authenticate = (req, options) ->
+  #console.log("authentication/strategies/basic.coffee - Inside Strategy::authenticate()")
   options = options or {}
 
   username = req.body[@_userNameField] or undefined
   password = req.body[@_passwordField] or undefined
   systemId = req.systemId or undefined
+
+  #SR - now check for the existence of an "Authorization" header and, if found, resolve the username and password from that
+  if not username
+    if req.headers.authorization
+      usernameAndPasswordPair = new Buffer(req.headers.authorization.split(" ")[1], 'base64').toString().split(":")
+      username = usernameAndPasswordPair[0]
+      password = usernameAndPasswordPair[1]
 
   if not username or not password
     @fail {message: 'Credientials not found'}
@@ -41,7 +48,6 @@ Strategy::authenticate = (req, options) ->
       @fail info
     else
       @success user, info
-
 
   if @_passReqToCallback
     @_verify req, username, password, systemId, verified
