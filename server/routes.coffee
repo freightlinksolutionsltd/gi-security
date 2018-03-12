@@ -6,7 +6,7 @@ configure = (app, rest) ->
   app.put '/api/user'
   , app.middleware.userAction, app.controllers.user.updateMe
 
-  app.del '/api/user'
+  app.delete '/api/user' #Changed 'app.del' to 'app.delete' for express 4.x compatibility
   , app.middleware.userAction, app.controllers.user.destroyMe
 
   app.get '/api/user/isAvailable'
