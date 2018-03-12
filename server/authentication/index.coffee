@@ -79,7 +79,6 @@ module.exports = (app) ->
 
   findUser = (req, res, next) ->
     if req.isAuthenticated()
-      #console.log("authentication/index.coffee - Inside findUser() - Already Authenticated")
       addExtraUserInfo(req, res, next)
     else
       exports._hmacAuth req, res, (err, user) =>
@@ -90,7 +89,7 @@ module.exports = (app) ->
             if user and (not err)
               addExtraUserInfo(req, res, next)
             else
-              exports._basicAuth req, res, (err, user) -> ############################################## I ADDED THIS
+              exports._basicAuth req, res, (err, user) ->
                 if user and (not err)
                   addExtraUserInfo(req, res, next)
                 else
@@ -134,41 +133,29 @@ module.exports = (app) ->
           res.json 403, {message: 'Public user registration is not enabled'}
 
   hmacAuth = (req, res, next) ->
-    #console.log("authentication/index.coffee - Inside hmacAuth()")
     if _.indexOf(req.strategies, 'Hmac') is -1
-      #console.log("authentication/index.coffee - Inside hmacAuth() - NOT SUPPORTED")
       next 'Hmac strategy not supported', null
     else
-      #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - calling passport.authenticate()")
       passport.authenticate('hmac', (err, user, info) ->
         if err
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
           next err, null
         else if not user
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
           next info, null
         else
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
           req.user = user
           next null, user
       )(req, res, next)
 
-  basicAuth = (req, res, next) -> ############################################## I ADDED THIS
-    #console.log("authentication/index.coffee - Inside basicAuth()")
+  basicAuth = (req, res, next) ->
     if _.indexOf(req.strategies, 'Basic') is -1
-      #console.log("authentication/index.coffee - Inside basicAuth() - NOT SUPPORTED")
       next 'Basic strategy not supported', null
     else
-      #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - calling passport.authenticate()")
       passport.authenticate('basic', (err, user, info) ->
         if err
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
           next err, null
         else if not user
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
           next info, null
         else
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
           req.user = user
           next null, user
       )(req, res, next)
@@ -258,7 +245,7 @@ module.exports = (app) ->
 
   app.use passport.initialize()
   app.use passport.session()
-  app.use app.router
+  #app.use app.router #Not compatible with express 4.x
 
   #Having fired up passport authentication
   #link in the authentication routes:
