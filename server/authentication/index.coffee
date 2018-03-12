@@ -52,10 +52,10 @@ module.exports = (app) ->
 
   systemCheck = (req, res, next) ->
     #find environment by host
-    if req?.hostname #Changed 'req?.host' to 'req?.hostname' for express 4.x compatibility
+    if req?.hostname
       app.models.environments.forHost req.hostname, (err, result) -> #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if result
           req.systemId = result.systemId
           req.environmentId = result._id
@@ -64,9 +64,9 @@ module.exports = (app) ->
               req.strategies = strategies
             exports._findUser req, res, next
         else
-          res.json 404, {message: 'environment not found'}
+          res.status(404).json({message: 'environment not found'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 500, {message: 'host not found on request object'}
+      res.status(500).json({message: 'host not found on request object'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   addExtraUserInfo = (req, res, next) ->
     if req.user.toObject?
@@ -112,7 +112,7 @@ module.exports = (app) ->
               req.query.acl = 'public-read'
               next()
             else
-              res.json 401, {msg: 'not authorized'}
+              res.status(401).json({msg: 'not authorized'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else
         if req.route.method is 'get'
           #if we're not an admin, enforce public-read acl
@@ -121,7 +121,7 @@ module.exports = (app) ->
           req.query.acl = 'public-read'
           next()
         else
-          res.json 401, {msg: 'not authorized'}
+          res.status(401).json({msg: 'not authorized'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   publicRegisterAction = (req, res, next) ->
     systemCheck req, res, () ->
@@ -130,7 +130,7 @@ module.exports = (app) ->
         if setting
           next()
         else
-          res.json 403, {message: 'Public user registration is not enabled'}
+          res.status(403).json({message: 'Public user registration is not enabled'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   hmacAuth = (req, res, next) ->
     if _.indexOf(req.strategies, 'Hmac') is -1
@@ -179,7 +179,7 @@ module.exports = (app) ->
       if req.user?
         permissionsMiddleware req, res, next
       else
-        res.json 401, {}
+        res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   adminAction = (req, res, next) ->
     userAction req, res, () ->
@@ -187,7 +187,7 @@ module.exports = (app) ->
         if ok
           next()
         else
-          res.json 401, {}
+          res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   sysAdminAction = (req, res, next) ->
     userAction req, res, () ->
@@ -195,7 +195,7 @@ module.exports = (app) ->
         if ok
           next()
         else
-          res.json 401, {}
+          res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   isInRole = (role, user, callback) ->
     result = false
@@ -245,7 +245,7 @@ module.exports = (app) ->
 
   app.use passport.initialize()
   app.use passport.session()
-  #app.use app.router #Not compatible with express 4.x
+  #app.use app.router #Removed 'app.router' for express 4.x compatibility
 
   #Having fired up passport authentication
   #link in the authentication routes:
