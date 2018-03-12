@@ -179,7 +179,7 @@ module.exports = (model, crudControllerFactory) ->
                   res.json 500, {message: "error saving token to user " + err}
                 else
                   resetObj =
-                    host: req.protocol + "://" + req.host
+                    host: req.protocol + "://" + req.hostname #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
                     email: user.email
                     token: token
 
@@ -214,7 +214,7 @@ module.exports = (model, crudControllerFactory) ->
                   res.json 500, {message: "error saving token to user " + err}
                 else
                   resetObj =
-                    host: req.protocol + "://" + req.host
+                    host: req.protocol + "://" + req.hostname #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
                     email: user.email
                     token: token
                     _id: user._id

@@ -53,7 +53,7 @@ module.exports = (app) ->
   systemCheck = (req, res, next) ->
     #find environment by host
     if req?.host
-      app.models.environments.forHost req.host, (err, result) ->
+      app.models.environments.forHost req.hostname, (err, result) -> #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
         if err
           res.json 500, {message: err}
         else if result
