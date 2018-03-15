@@ -39,7 +39,7 @@ Strategy::authenticate = (req, options) ->
       password = usernameAndPasswordPair[1]
 
   if not username or not password
-    @fail {message: 'Credientials not found'}
+    return @fail {message: 'Credentials not found'}
 
   verified = (err, user, info) =>
     if err
