@@ -9,9 +9,9 @@ module.exports = (models, crudControllerFactory) ->
   updatePrimary = (file, res) ->
     if file.primary
       #TODO: set all other files with this parent to primary = false
-      res.json 200, file
+      res.status(200).json(file) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 200, file
+      res.status(200).json(file) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   create = (req, res) ->
     crudController.create req, res, () ->
@@ -25,23 +25,23 @@ module.exports = (models, crudControllerFactory) ->
     settings.get "awsAccessKey"
     , req.systemId, req.environmentId, (err, awsKey) ->
       if err
-        res.json 404, "AWS Access key not set"
+        res.status(404).json("AWS Access key not set") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else
         settings.get "awsBucketName"
         , req.systemId, req.environmentId, (err, awsBucket) ->
           if err
-            res.json 404, "AWS bucket name not set"
+            res.status(404).json("AWS bucket name not set") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
           else
             settings.get "awsSecretKey"
             , req.systemId, req.environmentId, (err, awsSecret) ->
               if err
-                res.json 404, "AWS secret key not set"
+                res.status(404).json("AWS secret key not set") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
               else
                 if req.params?.id
                   models.files.findById req.params.id, req.systemId
                   , (err, file) ->
                     if err or (not file)
-                      res.json 404, "could not find file with that id"
+                      res.status(404).json("could not find file with that id") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
                     else
                       #let's go and delete the files from S3
                       awsConfig =
@@ -68,7 +68,7 @@ module.exports = (models, crudControllerFactory) ->
                         crudController.destroy req, res
       
                 else
-                  res.json 404, "could not find file with that id"
+                  res.status(404).json("could not find file with that id") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
   
   exports = gi.common.extend {}, crudController
   exports.create = create

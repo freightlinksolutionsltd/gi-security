@@ -22,7 +22,7 @@ module.exports = (app) ->
 
     app.models.permissions.find options, (err, results) ->
       if err
-        res.json 500, {message: err}
+        res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else if results?
         req.giFilter = {}
 
