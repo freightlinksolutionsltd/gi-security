@@ -33,282 +33,56 @@ angular.module('gi.security').config([
   }
 ]);
 
-angular.module('gi.security').controller('loginController', [
-  '$scope',
-  '$http',
-  '$filter',
-  'Auth',
-  'Facebook',
-  'Setting',
-  function($scope,
-  $http,
-  $filter,
-  Auth,
-  Facebook,
-  Setting) {
-    //when we're in this controller we should keep testing to see
-    //if the user has managed to login yet.
-    $scope.loginStatus = {
-      failed: false
-    };
-    $scope.login = function() {
-      return $http.post('/api/login',
-  $scope.cred).success(function() {
-        return Auth.loginConfirmed();
-      }).error(function() {
-        return $scope.loginStatus.failed = true;
-      });
-    };
-    $scope.loginWithFacebook = function() {
-      return Facebook.login().then(function(loggedIn) {
-        if (loggedIn) {
-          return Auth.loginConfirmed();
-        }
-      });
-    };
-    $scope.dismissLoginAlert = function() {
-      return $scope.loginStatus.failed = false;
-    };
-    return Setting.all().then(function(settings) {
-      var allowFacebookLogin,
-  appId;
-      allowFacebookLogin = $filter('filter')(settings,
-  function(setting) {
-        return setting.key === 'loginWithFacebook';
-      });
-      if ((allowFacebookLogin != null ? allowFacebookLogin.length : void 0) > 0) {
-        $scope.allowFacebookLogin = allowFacebookLogin[0].value;
-      } else {
-        $scope.allowFacebookLogin = false;
-      }
-      if ($scope.allowFacebookLogin) {
-        appId = $filter('filter')(settings,
-  function(setting) {
-          return setting.key === 'facebookAppId';
-        });
-        if ((appId != null ? appId.length : void 0) > 0) {
-          return Facebook.init(appId[0].value);
-        } else {
-          return console.log('error initializing facebook login');
-        }
-      }
-    });
-  }
-]);
-
-angular.module('gi.security').controller('logoutController', [
-  'Auth',
-  function(Auth) {
-    return Auth.logout();
-  }
-]);
-
-angular.module('gi.security').controller('permissionController', [
-  '$scope',
-  '$location',
-  'Resource',
+angular.module('gi.security').filter('permissionRestriction', [
   'Permission',
-  'Auth',
-  function($scope,
-  $location,
-  Resource,
-  Permission,
-  Auth) {
-    Resource.all().then(function(rts) {
-      console.log('rts');
-      console.log(rts);
-      return $scope.resourceTypes = rts;
-    });
-    $scope.selectedPermissions = [];
-    $scope.options = {
-      customSearch: false,
-      customSort: false,
-      searchProperties: ['resourceType'],
-      searchFilters: ['permissionUser',
-  'permissionRestriction'],
-      displayCounts: true,
-      columns: 3
-    };
-    $scope.savePermission = function(permission) {
-      return Permission.save(permission);
-    };
-    return Auth.isAdmin().then(function(isAdmin) {
-      if (isAdmin) {
-        Permission.all().then(function(permissions) {
-          return $scope.permissions = permissions;
-        });
-        return $scope.$watch('selectedPermissions[0]',
-  function(newVal,
-  oldVal) {
-          if (newVal) {
-            $scope.permission = newVal;
-            return $scope.submitText = "Update Permission";
-          } else {
-            $scope.permission = {};
-            return $scope.submitText = "Add Permission";
-          }
-        });
-      } else {
-        return $location.path('/login');
-      }
-    });
-  }
-]);
-
-var indexOf = [].indexOf;
-
-angular.module('gi.security').controller('roleController', [
-  '$scope',
-  '$location',
-  'Role',
-  'User',
-  'Auth',
-  function($scope,
-  $location,
-  Role,
-  User,
-  Auth) {
-    var refreshRoleUsers,
-  reset;
-    $scope.roles = [];
-    reset = function() {
-      $scope.newRole = Role.create();
-      return $scope.getRoles();
-    };
-    refreshRoleUsers = function(role) {
-      $scope.roleUsers = [];
-      if ((role != null ? role._id : void 0) != null) {
-        return angular.forEach($scope.users,
-  function(user) {
-          var ref;
-          if (ref = role._id,
-  indexOf.call(user.roles,
-  ref) >= 0) {
-            return $scope.roleUsers.push(user);
+  function(Permission) {
+    return function(permission) {
+      var result;
+      result = "N/A";
+      if (permission && permission.restriction) {
+        angular.forEach(Permission.restrictions,
+  function(res) {
+          if (res.value === permission.restriction) {
+            return result = res.name;
           }
         });
       }
+      return result;
     };
-    $scope.saveRole = function(role,
-  callback) {
-      return Role.save(role,
-  function() {
-        reset();
-        if (callback) {
-          return callback();
-        }
-      });
-    };
-    $scope.getRoles = function() {
-      return Role.query(function(roles) {
-        $scope.roles = roles;
-        if (roles.length > 0) {
-          $scope.selectedRole = roles[0];
-          return refreshRoleUsers(roles[0]);
-        }
-      });
-    };
-    $scope.selectRole = function(role) {
-      $scope.selectedRole = role;
-      return refreshRoleUsers(role);
-    };
-    $scope.deleteRole = function(role) {
-      return Role.destroy(role._id,
-  function() {
-        return $scope.getRoles();
-      });
-    };
-    $scope.show = function(selector) {
-      return $scope.currentView = selector;
-    };
-    return Auth.isAdmin().then(function(isAdmin) {
-      if (isAdmin) {
-        User.query(function(results) {
-          $scope.users = results;
-          return refreshRoleUsers($scope.selectedRole);
-        });
-        $scope.show('list');
-        return reset();
-      } else {
-        console.log('redirecting to login');
-        return $location.path('/login');
+  }
+]);
+
+angular.module('gi.security').filter('permissionUser', [
+  '$filter',
+  function($filter) {
+    return function(permission) {
+      var result;
+      result = 'Unknown';
+      if (permission && permission.userId) {
+        result = $filter('userName')(permission.userId);
       }
-    });
+      return result;
+    };
   }
 ]);
 
-angular.module('gi.security').controller('userController', [
-  '$scope',
-  'UserAccount',
-  function($scope,
-  UserAccount) {
-    $scope.deleteUser = function(id) {
-      return UserAccount.delete();
-    };
-    $scope.resetApi = function() {
-      return UserAccount.resetAPISecret().then(function() {
-        return $scope.user = UserAccount.get();
-      });
-    };
-    return $scope.user = UserAccount.get();
-  }
-]);
-
-angular.module('gi.security').controller('usersController', [
-  '$scope',
-  '$location',
+angular.module('gi.security').filter('userName', [
   'giUser',
-  'Auth',
-  function($scope,
-  $location,
-  User,
-  Auth) {
-    $scope.newUser = {};
-    $scope.currentView = 'list';
-    $scope.getData = function() {
-      return User.query(function(results) {
-        $scope.users = results;
-        return $scope.selectedUser = $scope.users[0];
-      });
-    };
-    $scope.deleteUser = function(id) {
-      return User.delete({
-        id: id
-      },
-  function() {
-        return $scope.getData();
-      });
-    };
-    $scope.saveUser = function(user) {
-      return User.save(user,
-  function() {
-        return $scope.getData();
-      });
-    };
-    $scope.getUsers = function() {
-      return $scope.users = User.query();
-    };
-    $scope.deleteUser = function(id) {
-      return User.delete({
-        id: id
-      },
-  function() {
-        return $scope.getUsers();
-      });
-    };
-    $scope.selectUser = function(user) {
-      return $scope.selectedUser = user;
-    };
-    $scope.show = function(view) {
-      return $scope.currentView = view;
-    };
-    return Auth.isAdmin().then(function(isAdmin) {
-      if (isAdmin) {
-        return $scope.getData();
-      } else {
-        return $location.path('/login');
+  function(User) {
+    return function(id) {
+      var result,
+  user;
+      result = 'Missing User Id';
+      if (id) {
+        user = User.getSync(id);
+        if (user) {
+          result = user.firstName;
+        } else {
+          result = id;
+        }
       }
-    });
+      return result;
+    };
   }
 ]);
 
@@ -343,16 +117,6 @@ angular.module('gi.security').directive('auth', [
   }
 ]);
 
-angular.module('gi.security').run(['$templateCache', function($templateCache) {$templateCache.put('gi-login.html','<div class="hero-unit">\n  <div class="alert alert-danger" ng-if="loginStatus.failed">\n    <button type="button" \n            class="close dismissLogin" \n            ng-click="dismissLoginAlert()">&times;</button>\n    <strong>Login Failed!</strong>: Username / Password was incorrect\n  </div>\n  <h3>Please Login</h3>\n  <div  class="well form-inline">\n    <input  type="text" \n            ng-model="cred.username" \n            class="input" \n            placeholder="Email">\n    <input  type="password" \n            ng-model="cred.password" \n            class="input-small" \n            placeholder="Password">\n    <button ng-disabled="!cred.username || !cred.password" \n            class="btn btn-primary basicLogin" \n            ng-click="login()">Login</button>\n  </div>\n  <div class="well form loginWithFacebook" ng-if="allowFacebookLogin">\n    <button ng-click="loginWithFacebook()"><img src="/img/login-with-facebook.png" width="154" height="22"></button> \n  </div>\n</div>');
-$templateCache.put('gi-logout.html','<div class="hero-unit">\n  <h3>You have been securely logged out</h3>\n  <a href="/login" class="btn btn-primary">Log Back In</a>\n</div>');
-$templateCache.put('gi-permissionForm.html','<div class="well form">\n  <div class="form-group"\n    <label>User:</label>\n    <gi-select2 options="users" selection="selectedUser" field="firstName" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Resource Type:</label>\n    <gi-select2 options="resourceTypes" selection="selectedResourceType" field="name" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Restriction:</label>\n    <select class="form-control" \n            ng-model="permission.restriction" \n            ng-options="r.value as r.name for r in restrictions"></select>\n  </div>\n  <div class="form-group">\n    <label>{{permission.resourceType.name}}</label>\n    <label>Keys:</label>\n    <gi-select2 tags custom options="keys" selection="selectedKeys" field="name" style="width:100%"/>\n  </div>\n  <button class="btn btn-primary" ng-click="save()">\n    {{submitText}}\n  </button>\n  <button ng-show="showDelete" class="btn btn-danger" ng-click="confirmDelete()" >\n    <span class="glyphicon glyphicon-trash white"></span>\n  </button>\n\n</div>\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete this permission - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deletePermission()"\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
-$templateCache.put('gi-permissions.html','<div class="container">\n  <div class="row">\n    <div class="col-md-6">\n      <gi-datatable items="permissions" \n                 selected-items="selectedPermissions"\n                 options="options" >\n        <div class="header">\n          <label>User</label>\n          <label>Resource</label>\n          <label>Restriction</label>\n        </div>\n        <div class="body">\n          <label class="filter">permissionUser</label>\n          <label class="property">resourceType</label>\n          <label class="filter">permissionRestriction</label>\n        </div>\n      </gi-datatable>\n    </div>\n    <div class="col-md-6">\n      <permission-form permission="permission" submit-text="{{submitText}}" submit="savePermission(permission)"></permission-form>\n    </div>\n  </div>\n</div>');
-$templateCache.put('gi-role.html','<div class="container">\n  <div class="row">\n    <div class="col-md-2">\n      <ul class="nav nav-pills nav-stacked">\n        <li ng-class="{active: currentView == \'list\' }">\n          <a ng-click="show(\'list\')">All Roles</a>\n        </li>\n        <li ng-class="{active: currentView == \'form\' }">\n          <a ng-click="show(\'form\')">New Role</a>\n        </li>\n      </ul>\n    </div>\n    <div class="col-md-10">\n      <div>\n        <div ng-show="selectedRole" >\n          <div class="col-md-6">\n            <h4>Roles</h4>\n            <ul class="nav nav-pills nav-stacked" ng-repeat="role in roles" >\n              <li ng-class="{active: role.name == selectedRole.name}" >\n                <a \n                 ng-click="selectRole(role)">{{role.name}}</a>\n              </li>\n            </ul>\n            <div>\n              <h4>Role Members</h4>\n              <div ng-repeat="user in roleUsers">{{user.firstName}}</div>\n            </div>\n          </div>\n          <div ng-show="currentView == \'list\'" class="col-md-6">\n            <h4>Role Details</h4>\n            <role-form role="selectedRole" title="Role Details" submit-text="Update Role" submit="saveRole(role)" destroy="deleteRole(role)"></role-form>\n\n          </div>\n          <div ng-show="currentView == \'form\'" class="col-md-6">\n            <role-form role="newRole" title="Role Details" submit-text="Create Role" submit="saveRole(role)"></role-form>\n          </div>\n        </div>      \n        <div ng-hide="selectedRole">\n          <div class="col-md-6">\n            <h4>Roles</h4>\n            No Roles found for this organisation.\n            You can create one by entering the details on this page.\n          </div>\n          <div class="col-md-6">\n            <role-form title="New Role" role="newRole" submit-text="Create Role" submit="saveRole(role)"></role-form>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>');
-$templateCache.put('gi-roleForm.html','<div class="well form" role="form">\n  <input type="hidden" id="hiddenSiteId" ng-model="role._id"/>\n  <div class="form-group">\n    <label  >Name:</label>\n    <input  type="text" class="form-control" \n            name="name" ng-model="role.name"/>\n  </div>\n  <button class="btn btn-primary" \n            ng-click="submit({role: role})">\n      {{submitText}}\n  </button>\n  <button ng-show="showDelete" \n          class="btn btn-danger" \n          ng-click="confirmDelete()" >\n    <span class="glyphicon glyphicon-trash white"></span>\n  </button>\n</div>\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete a role - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deleteRole()"\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
-$templateCache.put('gi-rolePicker.html','<div class="row">\n  <div id="board">\n    <div id="columns" >\n      <div class="column col-md-6">\n        <div class="columnHeader">\n          <span>Available</span>\n        </div>\n        <ul class="cards card-list" as-sortable\n        ng-model="model.availableItems">\n          <li as-sortable-item class="card"\n          ng-repeat="item in model.availableItems">\n            <div as-sortable-item-handle>{{item.name}}</div>\n          </li>\n        </ul>\n      </div>\n      <div class="column col-md-6">\n        <div class="columnHeader">\n          <span>Selected</span>\n        </div>\n        <ul class="cards card-list" as-sortable="dragControlListeners"\n        ng-model="model.chosenItems">\n          <li as-sortable-item class="card"\n          ng-repeat="item in model.chosenItems">\n            <div as-sortable-item-handle>{{item.name}}</div>\n          </li>\n        </ul>\n      </div>\n    </div>\n  </div>\n</div>\n');
-$templateCache.put('gi-user.html','<div class="form" role="form">\n  <div class="form-group">\n    <label name="userName">Name: {{user.firstName}} {{ user.lastName }}</label>\n  </div>\n  <div class="form-group">\n    <label name="userId">Id: {{user._id}}</label>\n  </div>\n  <div class="form-group">\n    <label name="apiSecret">API Secret: {{user.apiSecret}}</label>\n  </div>\n  <div class="form-group">\n    <button class="btn btn-primary" ng-click="resetApi()">Create API Secret</button>\n  </div>\n</div>');
-$templateCache.put('gi-userForm.html','<div class="well form">\n  <h4>Profile</h4>\n  <div class="form-group">\n    <label>First Name:</label>\n    <input  type="text" name="name" class="form-control" \n            ng-model="user.firstName" ng-change="checkForChanges()"/>\n  </div>\n  <div class="form-group">\n    <label>Surname:</label>\n    <input  type="text" name="lastName" class="form-control" \n            ng-model="user.lastName" ng-change="checkForChanges()"/>\n  </div>\n  <div class="form-group">\n    <label>Email:</label>\n    <input  type="text" name="email" class="form-control" \n            ng-model="user.email" ng-change="checkForChanges()" />\n  </div>\n  <div class="form-group">\n    <label>Password:</label>\n    <input  type="password" name="password" class="form-control" \n            ng-model="user.password" ng-change="checkForChanges()" />\n  </div>\n  <h4>Roles</h4>\n  <div class="form-group">\n    <h4>Assigned Roles</h4>\n    <div class="col-md-12" ng-repeat="role in userRoles">\n      <label>{{role.name}}</label>\n      <button class="btn btn-danger"\n              ng-click="removeFromRole(role)" >\n        <span class="glyphicon glyphicon-trash white"></span>\n      </button>\n    </div>\n    <div ng-if="notUserRoles.length > 0">\n      <h4>Available Roles</h4>\n      <select class="form-control"\n              ng-model="selectedRole" \n              ng-options="role.name for role in notUserRoles">\n      </select>\n      <button ng-click="addToRole(selectedRole)" \n              class="btn btn-primary">Assign</button>\n    </div>\n  </div>\n  <div class="form-group">\n    <button ng-disabled="!unsavedChanges" \n            class="btn btn-primary" \n            ng-click="save()">\n        {{submitText}}\n    </button>\n    <button ng-show="showDelete" \n            class="btn btn-danger" \n            ng-click="confirmDelete()" >\n      <span class="glyphicon glyphicon-trash white"></span>\n    </button>\n  </div>\n</div>\n\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete a user - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deleteUser()" \\\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
-$templateCache.put('gi-userManagement.html','<div class="container">\n  <div class="row">\n    <div class="col-md-2">\n      <ul class="nav nav-pills nav-stacked">\n        <li ng-class="{active: currentView == \'list\' }">\n          <a ng-click="show(\'list\')">All Users</a>\n        </li>\n        <li ng-class="{active: currentView == \'form\' }">\n          <a ng-click="show(\'form\')">New User</a>\n        </li>\n      </ul>\n    </div>\n    <div class="col-md-10">\n      <div>\n        <div ng-show="selectedUser" >\n          <div class="col-md-4">\n            <h4>Users</h4>\n            <ul class="nav nav-pills nav-stacked" ng-repeat="user in users" >\n              <li ng-class="{active: user._id == selectedUser._id}" >\n                <a \n                 ng-click="selectUser(user)">{{user.firstName}}</a>\n              </li>\n            </ul>\n          </div>\n          <div ng-show="currentView == \'list\'" class="col-md-8">\n            <user-form user="selectedUser" title="User Details" submit-text="Save Changes" submit="saveUser(user)" destroy="deleteUser(user)"></user-form>\n          </div>\n          <div ng-show="currentView == \'form\'" class="col-md-8">\n            <user-form title="New User" user="newUser" submit-text="Create User" submit="saveUser(user)"></user-form>\n          </div>\n        </div>      \n        <div ng-hide="selectedUser">\n          <div class="col-md-4">\n            <h4>Users</h4>\n            No Users found for this organisation.\n            You can create one by entering the details on this page.\n          </div>\n          <div class="col-md-4">\n            <h4>Create New User</h4>\n            <user-form title="New User" user="newUser" submit-text="Create User" submit="saveUser(user)"></user-form>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>');}]);
 angular.module('gi.security').directive('giRolePicker', [
   '$filter',
   function($filter) {
@@ -655,6 +419,16 @@ angular.module('gi.security').directive('roleForm', function() {
   };
 });
 
+angular.module('gi.security').run(['$templateCache', function($templateCache) {$templateCache.put('gi-login.html','<div class="hero-unit">\n  <div class="alert alert-danger" ng-if="loginStatus.failed">\n    <button type="button" \n            class="close dismissLogin" \n            ng-click="dismissLoginAlert()">&times;</button>\n    <strong>Login Failed!</strong>: Username / Password was incorrect\n  </div>\n  <h3>Please Login</h3>\n  <div  class="well form-inline">\n    <input  type="text" \n            ng-model="cred.username" \n            class="input" \n            placeholder="Email">\n    <input  type="password" \n            ng-model="cred.password" \n            class="input-small" \n            placeholder="Password">\n    <button ng-disabled="!cred.username || !cred.password" \n            class="btn btn-primary basicLogin" \n            ng-click="login()">Login</button>\n  </div>\n  <div class="well form loginWithFacebook" ng-if="allowFacebookLogin">\n    <button ng-click="loginWithFacebook()"><img src="/img/login-with-facebook.png" width="154" height="22"></button> \n  </div>\n</div>');
+$templateCache.put('gi-logout.html','<div class="hero-unit">\n  <h3>You have been securely logged out</h3>\n  <a href="/login" class="btn btn-primary">Log Back In</a>\n</div>');
+$templateCache.put('gi-permissionForm.html','<div class="well form">\n  <div class="form-group"\n    <label>User:</label>\n    <gi-select2 options="users" selection="selectedUser" field="firstName" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Resource Type:</label>\n    <gi-select2 options="resourceTypes" selection="selectedResourceType" field="name" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Restriction:</label>\n    <select class="form-control" \n            ng-model="permission.restriction" \n            ng-options="r.value as r.name for r in restrictions"></select>\n  </div>\n  <div class="form-group">\n    <label>{{permission.resourceType.name}}</label>\n    <label>Keys:</label>\n    <gi-select2 tags custom options="keys" selection="selectedKeys" field="name" style="width:100%"/>\n  </div>\n  <button class="btn btn-primary" ng-click="save()">\n    {{submitText}}\n  </button>\n  <button ng-show="showDelete" class="btn btn-danger" ng-click="confirmDelete()" >\n    <span class="glyphicon glyphicon-trash white"></span>\n  </button>\n\n</div>\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete this permission - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deletePermission()"\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
+$templateCache.put('gi-permissions.html','<div class="container">\n  <div class="row">\n    <div class="col-md-6">\n      <gi-datatable items="permissions" \n                 selected-items="selectedPermissions"\n                 options="options" >\n        <div class="header">\n          <label>User</label>\n          <label>Resource</label>\n          <label>Restriction</label>\n        </div>\n        <div class="body">\n          <label class="filter">permissionUser</label>\n          <label class="property">resourceType</label>\n          <label class="filter">permissionRestriction</label>\n        </div>\n      </gi-datatable>\n    </div>\n    <div class="col-md-6">\n      <permission-form permission="permission" submit-text="{{submitText}}" submit="savePermission(permission)"></permission-form>\n    </div>\n  </div>\n</div>');
+$templateCache.put('gi-role.html','<div class="container">\n  <div class="row">\n    <div class="col-md-2">\n      <ul class="nav nav-pills nav-stacked">\n        <li ng-class="{active: currentView == \'list\' }">\n          <a ng-click="show(\'list\')">All Roles</a>\n        </li>\n        <li ng-class="{active: currentView == \'form\' }">\n          <a ng-click="show(\'form\')">New Role</a>\n        </li>\n      </ul>\n    </div>\n    <div class="col-md-10">\n      <div>\n        <div ng-show="selectedRole" >\n          <div class="col-md-6">\n            <h4>Roles</h4>\n            <ul class="nav nav-pills nav-stacked" ng-repeat="role in roles" >\n              <li ng-class="{active: role.name == selectedRole.name}" >\n                <a \n                 ng-click="selectRole(role)">{{role.name}}</a>\n              </li>\n            </ul>\n            <div>\n              <h4>Role Members</h4>\n              <div ng-repeat="user in roleUsers">{{user.firstName}}</div>\n            </div>\n          </div>\n          <div ng-show="currentView == \'list\'" class="col-md-6">\n            <h4>Role Details</h4>\n            <role-form role="selectedRole" title="Role Details" submit-text="Update Role" submit="saveRole(role)" destroy="deleteRole(role)"></role-form>\n\n          </div>\n          <div ng-show="currentView == \'form\'" class="col-md-6">\n            <role-form role="newRole" title="Role Details" submit-text="Create Role" submit="saveRole(role)"></role-form>\n          </div>\n        </div>      \n        <div ng-hide="selectedRole">\n          <div class="col-md-6">\n            <h4>Roles</h4>\n            No Roles found for this organisation.\n            You can create one by entering the details on this page.\n          </div>\n          <div class="col-md-6">\n            <role-form title="New Role" role="newRole" submit-text="Create Role" submit="saveRole(role)"></role-form>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>');
+$templateCache.put('gi-roleForm.html','<div class="well form" role="form">\n  <input type="hidden" id="hiddenSiteId" ng-model="role._id"/>\n  <div class="form-group">\n    <label  >Name:</label>\n    <input  type="text" class="form-control" \n            name="name" ng-model="role.name"/>\n  </div>\n  <button class="btn btn-primary" \n            ng-click="submit({role: role})">\n      {{submitText}}\n  </button>\n  <button ng-show="showDelete" \n          class="btn btn-danger" \n          ng-click="confirmDelete()" >\n    <span class="glyphicon glyphicon-trash white"></span>\n  </button>\n</div>\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete a role - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deleteRole()"\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
+$templateCache.put('gi-rolePicker.html','<div class="row">\n  <div id="board">\n    <div id="columns" >\n      <div class="column col-md-6">\n        <div class="columnHeader">\n          <span>Available</span>\n        </div>\n        <ul class="cards card-list" as-sortable\n        ng-model="model.availableItems">\n          <li as-sortable-item class="card"\n          ng-repeat="item in model.availableItems">\n            <div as-sortable-item-handle>{{item.name}}</div>\n          </li>\n        </ul>\n      </div>\n      <div class="column col-md-6">\n        <div class="columnHeader">\n          <span>Selected</span>\n        </div>\n        <ul class="cards card-list" as-sortable="dragControlListeners"\n        ng-model="model.chosenItems">\n          <li as-sortable-item class="card"\n          ng-repeat="item in model.chosenItems">\n            <div as-sortable-item-handle>{{item.name}}</div>\n          </li>\n        </ul>\n      </div>\n    </div>\n  </div>\n</div>\n');
+$templateCache.put('gi-user.html','<div class="form" role="form">\n  <div class="form-group">\n    <label name="userName">Name: {{user.firstName}} {{ user.lastName }}</label>\n  </div>\n  <div class="form-group">\n    <label name="userId">Id: {{user._id}}</label>\n  </div>\n  <div class="form-group">\n    <label name="apiSecret">API Secret: {{user.apiSecret}}</label>\n  </div>\n  <div class="form-group">\n    <button class="btn btn-primary" ng-click="resetApi()">Create API Secret</button>\n  </div>\n</div>');
+$templateCache.put('gi-userForm.html','<div class="well form">\n  <h4>Profile</h4>\n  <div class="form-group">\n    <label>First Name:</label>\n    <input  type="text" name="name" class="form-control" \n            ng-model="user.firstName" ng-change="checkForChanges()"/>\n  </div>\n  <div class="form-group">\n    <label>Surname:</label>\n    <input  type="text" name="lastName" class="form-control" \n            ng-model="user.lastName" ng-change="checkForChanges()"/>\n  </div>\n  <div class="form-group">\n    <label>Email:</label>\n    <input  type="text" name="email" class="form-control" \n            ng-model="user.email" ng-change="checkForChanges()" />\n  </div>\n  <div class="form-group">\n    <label>Password:</label>\n    <input  type="password" name="password" class="form-control" \n            ng-model="user.password" ng-change="checkForChanges()" />\n  </div>\n  <h4>Roles</h4>\n  <div class="form-group">\n    <h4>Assigned Roles</h4>\n    <div class="col-md-12" ng-repeat="role in userRoles">\n      <label>{{role.name}}</label>\n      <button class="btn btn-danger"\n              ng-click="removeFromRole(role)" >\n        <span class="glyphicon glyphicon-trash white"></span>\n      </button>\n    </div>\n    <div ng-if="notUserRoles.length > 0">\n      <h4>Available Roles</h4>\n      <select class="form-control"\n              ng-model="selectedRole" \n              ng-options="role.name for role in notUserRoles">\n      </select>\n      <button ng-click="addToRole(selectedRole)" \n              class="btn btn-primary">Assign</button>\n    </div>\n  </div>\n  <div class="form-group">\n    <button ng-disabled="!unsavedChanges" \n            class="btn btn-primary" \n            ng-click="save()">\n        {{submitText}}\n    </button>\n    <button ng-show="showDelete" \n            class="btn btn-danger" \n            ng-click="confirmDelete()" >\n      <span class="glyphicon glyphicon-trash white"></span>\n    </button>\n  </div>\n</div>\n\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete a user - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deleteUser()" \\\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
+$templateCache.put('gi-userManagement.html','<div class="container">\n  <div class="row">\n    <div class="col-md-2">\n      <ul class="nav nav-pills nav-stacked">\n        <li ng-class="{active: currentView == \'list\' }">\n          <a ng-click="show(\'list\')">All Users</a>\n        </li>\n        <li ng-class="{active: currentView == \'form\' }">\n          <a ng-click="show(\'form\')">New User</a>\n        </li>\n      </ul>\n    </div>\n    <div class="col-md-10">\n      <div>\n        <div ng-show="selectedUser" >\n          <div class="col-md-4">\n            <h4>Users</h4>\n            <ul class="nav nav-pills nav-stacked" ng-repeat="user in users" >\n              <li ng-class="{active: user._id == selectedUser._id}" >\n                <a \n                 ng-click="selectUser(user)">{{user.firstName}}</a>\n              </li>\n            </ul>\n          </div>\n          <div ng-show="currentView == \'list\'" class="col-md-8">\n            <user-form user="selectedUser" title="User Details" submit-text="Save Changes" submit="saveUser(user)" destroy="deleteUser(user)"></user-form>\n          </div>\n          <div ng-show="currentView == \'form\'" class="col-md-8">\n            <user-form title="New User" user="newUser" submit-text="Create User" submit="saveUser(user)"></user-form>\n          </div>\n        </div>      \n        <div ng-hide="selectedUser">\n          <div class="col-md-4">\n            <h4>Users</h4>\n            No Users found for this organisation.\n            You can create one by entering the details on this page.\n          </div>\n          <div class="col-md-4">\n            <h4>Create New User</h4>\n            <user-form title="New User" user="newUser" submit-text="Create User" submit="saveUser(user)"></user-form>\n          </div>\n        </div>\n      </div>\n    </div>\n  </div>\n</div>');}]);
 var indexOf = [].indexOf;
 
 angular.module('gi.security').directive('userForm', [
@@ -806,56 +580,282 @@ angular.module('gi.security').directive('giUsername', [
   }
 ]);
 
-angular.module('gi.security').filter('permissionRestriction', [
+angular.module('gi.security').controller('loginController', [
+  '$scope',
+  '$http',
+  '$filter',
+  'Auth',
+  'Facebook',
+  'Setting',
+  function($scope,
+  $http,
+  $filter,
+  Auth,
+  Facebook,
+  Setting) {
+    //when we're in this controller we should keep testing to see
+    //if the user has managed to login yet.
+    $scope.loginStatus = {
+      failed: false
+    };
+    $scope.login = function() {
+      return $http.post('/api/login',
+  $scope.cred).success(function() {
+        return Auth.loginConfirmed();
+      }).error(function() {
+        return $scope.loginStatus.failed = true;
+      });
+    };
+    $scope.loginWithFacebook = function() {
+      return Facebook.login().then(function(loggedIn) {
+        if (loggedIn) {
+          return Auth.loginConfirmed();
+        }
+      });
+    };
+    $scope.dismissLoginAlert = function() {
+      return $scope.loginStatus.failed = false;
+    };
+    return Setting.all().then(function(settings) {
+      var allowFacebookLogin,
+  appId;
+      allowFacebookLogin = $filter('filter')(settings,
+  function(setting) {
+        return setting.key === 'loginWithFacebook';
+      });
+      if ((allowFacebookLogin != null ? allowFacebookLogin.length : void 0) > 0) {
+        $scope.allowFacebookLogin = allowFacebookLogin[0].value;
+      } else {
+        $scope.allowFacebookLogin = false;
+      }
+      if ($scope.allowFacebookLogin) {
+        appId = $filter('filter')(settings,
+  function(setting) {
+          return setting.key === 'facebookAppId';
+        });
+        if ((appId != null ? appId.length : void 0) > 0) {
+          return Facebook.init(appId[0].value);
+        } else {
+          return console.log('error initializing facebook login');
+        }
+      }
+    });
+  }
+]);
+
+angular.module('gi.security').controller('logoutController', [
+  'Auth',
+  function(Auth) {
+    return Auth.logout();
+  }
+]);
+
+angular.module('gi.security').controller('permissionController', [
+  '$scope',
+  '$location',
+  'Resource',
   'Permission',
-  function(Permission) {
-    return function(permission) {
-      var result;
-      result = "N/A";
-      if (permission && permission.restriction) {
-        angular.forEach(Permission.restrictions,
-  function(res) {
-          if (res.value === permission.restriction) {
-            return result = res.name;
+  'Auth',
+  function($scope,
+  $location,
+  Resource,
+  Permission,
+  Auth) {
+    Resource.all().then(function(rts) {
+      console.log('rts');
+      console.log(rts);
+      return $scope.resourceTypes = rts;
+    });
+    $scope.selectedPermissions = [];
+    $scope.options = {
+      customSearch: false,
+      customSort: false,
+      searchProperties: ['resourceType'],
+      searchFilters: ['permissionUser',
+  'permissionRestriction'],
+      displayCounts: true,
+      columns: 3
+    };
+    $scope.savePermission = function(permission) {
+      return Permission.save(permission);
+    };
+    return Auth.isAdmin().then(function(isAdmin) {
+      if (isAdmin) {
+        Permission.all().then(function(permissions) {
+          return $scope.permissions = permissions;
+        });
+        return $scope.$watch('selectedPermissions[0]',
+  function(newVal,
+  oldVal) {
+          if (newVal) {
+            $scope.permission = newVal;
+            return $scope.submitText = "Update Permission";
+          } else {
+            $scope.permission = {};
+            return $scope.submitText = "Add Permission";
+          }
+        });
+      } else {
+        return $location.path('/login');
+      }
+    });
+  }
+]);
+
+var indexOf = [].indexOf;
+
+angular.module('gi.security').controller('roleController', [
+  '$scope',
+  '$location',
+  'Role',
+  'User',
+  'Auth',
+  function($scope,
+  $location,
+  Role,
+  User,
+  Auth) {
+    var refreshRoleUsers,
+  reset;
+    $scope.roles = [];
+    reset = function() {
+      $scope.newRole = Role.create();
+      return $scope.getRoles();
+    };
+    refreshRoleUsers = function(role) {
+      $scope.roleUsers = [];
+      if ((role != null ? role._id : void 0) != null) {
+        return angular.forEach($scope.users,
+  function(user) {
+          var ref;
+          if (ref = role._id,
+  indexOf.call(user.roles,
+  ref) >= 0) {
+            return $scope.roleUsers.push(user);
           }
         });
       }
-      return result;
     };
-  }
-]);
-
-angular.module('gi.security').filter('permissionUser', [
-  '$filter',
-  function($filter) {
-    return function(permission) {
-      var result;
-      result = 'Unknown';
-      if (permission && permission.userId) {
-        result = $filter('userName')(permission.userId);
-      }
-      return result;
-    };
-  }
-]);
-
-angular.module('gi.security').filter('userName', [
-  'giUser',
-  function(User) {
-    return function(id) {
-      var result,
-  user;
-      result = 'Missing User Id';
-      if (id) {
-        user = User.getSync(id);
-        if (user) {
-          result = user.firstName;
-        } else {
-          result = id;
+    $scope.saveRole = function(role,
+  callback) {
+      return Role.save(role,
+  function() {
+        reset();
+        if (callback) {
+          return callback();
         }
-      }
-      return result;
+      });
     };
+    $scope.getRoles = function() {
+      return Role.query(function(roles) {
+        $scope.roles = roles;
+        if (roles.length > 0) {
+          $scope.selectedRole = roles[0];
+          return refreshRoleUsers(roles[0]);
+        }
+      });
+    };
+    $scope.selectRole = function(role) {
+      $scope.selectedRole = role;
+      return refreshRoleUsers(role);
+    };
+    $scope.deleteRole = function(role) {
+      return Role.destroy(role._id,
+  function() {
+        return $scope.getRoles();
+      });
+    };
+    $scope.show = function(selector) {
+      return $scope.currentView = selector;
+    };
+    return Auth.isAdmin().then(function(isAdmin) {
+      if (isAdmin) {
+        User.query(function(results) {
+          $scope.users = results;
+          return refreshRoleUsers($scope.selectedRole);
+        });
+        $scope.show('list');
+        return reset();
+      } else {
+        console.log('redirecting to login');
+        return $location.path('/login');
+      }
+    });
+  }
+]);
+
+angular.module('gi.security').controller('userController', [
+  '$scope',
+  'UserAccount',
+  function($scope,
+  UserAccount) {
+    $scope.deleteUser = function(id) {
+      return UserAccount.delete();
+    };
+    $scope.resetApi = function() {
+      return UserAccount.resetAPISecret().then(function() {
+        return $scope.user = UserAccount.get();
+      });
+    };
+    return $scope.user = UserAccount.get();
+  }
+]);
+
+angular.module('gi.security').controller('usersController', [
+  '$scope',
+  '$location',
+  'giUser',
+  'Auth',
+  function($scope,
+  $location,
+  User,
+  Auth) {
+    $scope.newUser = {};
+    $scope.currentView = 'list';
+    $scope.getData = function() {
+      return User.query(function(results) {
+        $scope.users = results;
+        return $scope.selectedUser = $scope.users[0];
+      });
+    };
+    $scope.deleteUser = function(id) {
+      return User.delete({
+        id: id
+      },
+  function() {
+        return $scope.getData();
+      });
+    };
+    $scope.saveUser = function(user) {
+      return User.save(user,
+  function() {
+        return $scope.getData();
+      });
+    };
+    $scope.getUsers = function() {
+      return $scope.users = User.query();
+    };
+    $scope.deleteUser = function(id) {
+      return User.delete({
+        id: id
+      },
+  function() {
+        return $scope.getUsers();
+      });
+    };
+    $scope.selectUser = function(user) {
+      return $scope.selectedUser = user;
+    };
+    $scope.show = function(view) {
+      return $scope.currentView = view;
+    };
+    return Auth.isAdmin().then(function(isAdmin) {
+      if (isAdmin) {
+        return $scope.getData();
+      } else {
+        return $location.path('/login');
+      }
+    });
   }
 ]);
 

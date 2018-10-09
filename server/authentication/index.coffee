@@ -7,14 +7,14 @@ permissionFilter = require './permissionFilter'
 module.exports = (app) ->
   permissionsMiddleware = permissionFilter app
 
-  passport.serializeUser = (user, done) ->
+  passport.serializeUser (user, done) ->
     obj =
       _id: user._id
       systemId: user.systemId
 
     done null, obj
 
-  passport.deserializeUser = (obj, done) ->
+  passport.deserializeUser (obj, done) ->
     app.models.users.findById obj._id, obj.systemId, (err, user) ->
       if err
         done err, null
@@ -46,7 +46,8 @@ module.exports = (app) ->
         callback(err, null) if callback
       else
         isDefined = (value, cb) ->
-          cb(value?)
+          #cb(value?)
+          if value? then cb(value) else cb(false)
         async.filter results, isDefined, (filteredResults) ->
           callback(err, filteredResults) if callback
 
