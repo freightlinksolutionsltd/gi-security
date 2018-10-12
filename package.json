@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "async": "~2.6.1",
-    "aws-sdk": "~2.331.0",
+    "aws-sdk": "~2.333.0",
     "bcryptjs": "*",
     "coffeescript": "^2.3.2",
     "gi-util": "~1.9.7",
@@ -28,7 +28,7 @@
     "coffeescript": "^2.3.2",
     "del": "^3.0.0",
     "gulp": "^3.9.1",
-    "gulp-angular-templatecache": "^2.2.1",
+    "gulp-angular-templatecache": "^2.2.2",
     "gulp-coffee": "^3.0.2",
     "gulp-coffeelint": "^0.6.0",
     "gulp-concat": "^2.6.1",
