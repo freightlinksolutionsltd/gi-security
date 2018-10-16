@@ -11,8 +11,8 @@
     "angular-resource": "~1.2.28",
     "angular-route": "~1.2.28",
     "angular-touch": "~1.2.28",
-    "gi-util": "~1.9.7",
-    "gi-ui": "~1.6.1",
+    "gi-util": "https://github.com/aitutaki/gi-util.git",
+    "gi-ui": "https://github.com/aitutaki/gi-ui.git",
 
     "underscore": "~1.5.2"
   },
