@@ -3,20 +3,20 @@ angular.module('gi.security').config ['$routeProvider', '$locationProvider'
   $routeProvider
   .when '/login',
     controller: 'loginController'
-    templateUrl: '/views/gi-login.html'
+    templateUrl: 'gi-login.html'
   .when '/user',
     controller: 'userController'
-    templateUrl: '/views/gi-user.html'
+    templateUrl: 'gi-user.html'
   .when '/logout',
     controller: 'logoutController'
-    templateUrl: '/views/gi-logout.html'
+    templateUrl: 'gi-logout.html'
   .when '/roles',
     controller: 'roleController'
-    templateUrl: '/views/gi-role.html'
+    templateUrl: 'gi-role.html'
   .when '/users',
     controller: 'usersController'
-    templateUrl: '/views/gi-userManagement.html'
+    templateUrl: 'gi-userManagement.html'
   .when '/permissions',
     controller: 'permissionController'
-    templateUrl: '/views/gi-permissions.html'
+    templateUrl: 'gi-permissions.html'
 ]
