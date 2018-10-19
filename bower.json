@@ -10,7 +10,7 @@
     "angular": "1.7.5",
     "angular-resource": "1.7.5",
     "angular-route": "1.7.5",
-    "angular-touch": "~1.2.28",
+    "angular-touch": "1.7.5",
     "gi-util": "https://github.com/aitutaki/gi-util.git",
     "gi-ui": "https://github.com/aitutaki/gi-ui.git",
 
