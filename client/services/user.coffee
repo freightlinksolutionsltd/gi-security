@@ -1,4 +1,4 @@
-angular.module('gi.security').provider 'User', () ->
+angular.module('gi.security').provider 'giUser', () ->
   passwordRequirements = null
 
   @setPasswordRequirements = (reqs) ->
