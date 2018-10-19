@@ -1282,7 +1282,7 @@ angular.module('gi.security').factory('Setting', [
   }
 ]);
 
-angular.module('gi.security').provider('User', function() {
+angular.module('gi.security').provider('giUser', function() {
   var passwordRequirements;
   passwordRequirements = null;
   this.setPasswordRequirements = function(reqs) {
