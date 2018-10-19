@@ -18,7 +18,7 @@
     "aws-sdk": "~2.333.0",
     "bcryptjs": "*",
     "coffeescript": "^2.3.2",
-    "gi-util": "https://github.com/aitutaki/gi-security.git",
+    "gi-util": "https://github.com/aitutaki/gi-util.git",
     "grunt": "^1.0.3",
     "moment": "~2.22.2",
     "passport": "~0.4.0",
