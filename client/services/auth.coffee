@@ -50,6 +50,10 @@ angular.module('gi.security').provider 'Auth', () ->
 
     getCountry = (me) ->
       deferred = $q.defer()
+      me.countryCode = "N/A"
+      deferred.resolve me
+      deferred.promise
+      ###
       if me?.user?.countryCode?
         me.countryCode = me.user.countryCode
         deferred.resolve me
@@ -62,6 +66,7 @@ angular.module('gi.security').provider 'Auth', () ->
           deferred.resolve me
 
       deferred.promise
+      ###
 
     getLoggedInUser = ->
       deferred = $q.defer()
@@ -140,8 +145,16 @@ angular.module('gi.security').provider 'Auth', () ->
       $http = $http || $injector.get '$http'
       $http.get('/api/logout')
       .success ->
+        ###
         loginChanged().then () ->
           deferred.resolve()
+        ###
+        me =
+          user: null
+          isAdmin: false
+          isRestricted: true
+          loggedIn: false
+        fireLoginChangeEvent()
       deferred.promise
   ]
 
