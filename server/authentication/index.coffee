@@ -45,11 +45,8 @@ module.exports = (app) ->
       if err
         callback(err, null) if callback
       else
-        isDefined = (value, cb) ->
-          #cb(value?)
-          if value? then cb(value) else cb(false)
-        async.filter results, isDefined, (filteredResults) ->
-          callback(err, filteredResults) if callback
+        filteredResults = _.filter results, (value) -> return value or false
+        callback(err, filteredResults) if callback
 
   systemCheck = (req, res, next) ->
     #find environment by host
