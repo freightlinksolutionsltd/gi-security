@@ -36,8 +36,13 @@ configure = (app, rest) ->
   rest.routeResource 'users', app
   , app.middleware.adminAction, app.controllers.user
 
-  rest.routeResource 'settings', app
-  , app.middleware.publicReadAction, app.controllers.setting
+  #rest.routeResource 'settings', app
+  #, app.middleware.publicReadAction, app.controllers.setting
+  app.get "/api/settings", app.middleware.publicAction, app.controllers.setting.index, (req, res) ->
+    if res.giResult?
+      res.status(200).json(res.giResult)
+    else
+      res.status(500).json({message: 'something went wrong'})
 
   rest.routeResource 'activities', app
   , app.middleware.userAction, app.controllers.activity
