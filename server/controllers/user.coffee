@@ -12,15 +12,15 @@ module.exports = (model, crudControllerFactory) ->
       model.findOneBy 'email', email, systemId, (err, user) ->
         if err?
           if err is "Cannot find User"
-            res.json 200, {available: true}
+            res.status(200).json({available: true}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
           else
-            res.json 500, {message: 'error searching by email: ' + err}
+            res.status(500).json({message: 'error searching by email: ' + err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if (not user)
-          res.json 200, {available: true}
+          res.status(200).json({available: true}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
-          res.json 200, {available: false}
+          res.status(200).json({available: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 200, {available: false}
+      res.status(200).json({available: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   verify = (req, res) ->
     email = req.body.email
@@ -31,11 +31,11 @@ module.exports = (model, crudControllerFactory) ->
     if email? and password? and systemId?
       model.findOneBy 'email', email, systemId, (err, user) ->
         if err or (not user)
-          res.json 200, {valid: false}
+          res.status(200).json({valid: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
           model.comparePassword user, password, (err, isValid) ->
             if err or (not isValid)
-              res.json 200, {valid: false}
+              res.status(200).json({valid: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else
               output = user.toJSON()
               delete output._id
@@ -43,49 +43,50 @@ module.exports = (model, crudControllerFactory) ->
               delete output.userIds
               delete output.password
               output.valid = true
-              res.json 200, output
+              res.status(200).json(output) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
       res.status(400).end("Required data not supplied")
 
   showMe = (req, res) ->
     model.findById req.user._id, req.systemId, (err, user) ->
       if err
-        res.json 404, {message: err}
+        res.status(404).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else
         user.password = null
         delete user.password
-        res.json 200, user
+        res.status(200).json(user) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
+
   updateMe = (req, res) ->
     #first check that the user we want to update is the user
     #making the request
     if req.user._id is not req.body._id
-      res.json 401
+      res.status(401).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
       req.body.systemId = req.systemId
       model.update req.user._id, req.body, (err, user) ->
         if err
-          res.json 404
+          res.status(404).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
           user.password = null
           delete user.password
-          res.json 200, user
+          res.status(200).json(user) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   destroyMe = (req, res) ->
     model.destroy req.user._id, req.systemId, (err) ->
       if err
-        res.json 404
+        res.status(404).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else
-        res.json 200
+        res.status(200).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   generateAPISecretForMe = (req, res) ->
     if req.user._id is not req.body._id
-      res.json 401
+      res.status(401).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
       model.resetAPISecret req.user._id, req.systemId, (err) ->
         if err
-          res.json 404
+          res.status(404).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
-          res.json 200
+          res.status(200).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   stripPasswords = (res) ->
     if _.isArray res.giResult
@@ -94,20 +95,20 @@ module.exports = (model, crudControllerFactory) ->
         delete r.obj.password
         r.obj.confirm = null
         delete r.obj.confirm
-      res.json res.giResultCode, res.giResult
+      res.status(res.giResultCode).json(res.giResult)
     else
       res.giResult.password = null
       delete res.giResult.password
       res.giResult.confirm = null
       delete res.giResult.confirm
-      res.json 200, res.giResult
+      res.status(200).json(res.giResult) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   index = (req, res) ->
     crud.index req, res, () ->
       _.each res.giResult, (u) ->
         u.password = null
         delete u.password
-      res.json 200, res.giResult
+      res.status(200).json(res.giResult) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   findById = (req, res) ->
     crud.show req, res, () ->
@@ -125,21 +126,21 @@ module.exports = (model, crudControllerFactory) ->
     if req.body.token?
       model.findOneBy 'token', req.body.token, req.systemId, (err, user) ->
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if not user
-          res.json 404, {message: "invalid token"}
+          res.status(404).json({message: "invalid token"}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
-          res.json 200, {message: "token ok"}
+          res.status(200).json({message: "token ok"}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 200, {isValid: false}
+      res.status(200).json({isValid: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   resetPassword = (req, res) ->
     if req.body.token?
       model.findOneBy 'token', req.body.token, req.systemId, (err, u) ->
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if not u
-          res.json 404, {message: "invalid token"}
+          res.status(404).json({message: "invalid token"})
         else
           user = u.toObject()
           updateObj =
@@ -149,26 +150,26 @@ module.exports = (model, crudControllerFactory) ->
               token: ""
           model.update user._id, updateObj, (err, obj) ->
             if err
-              res.json 500, {message: "error saving token to user " + err}
+              res.status(500).json({message: "error saving token to user " + err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else
               msg =
                 message: "password reset sucesfully"
                 email: user.email
-              res.json 200, msg
+              res.status(200).json(msg) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
       #look for a user with the specified e-mail
       #generate a random token
       model.findOneBy 'email', req.body.email, req.systemId, (err, user) ->
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if not user?
-          res.json 404, {message: "Could not find account for that e-mail"}
+          res.status(404).json({message: "Could not find account for that e-mail"})
         else
           model.generateToken (err, token) ->
             if err
-              res.json 500, {message: err}
+              res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else if not token
-              res.json 500, {message: "could not generate reset token"}
+              res.status(500).json({message: "could not generate reset token"}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else
               updateObj =
                 token: token
@@ -176,34 +177,34 @@ module.exports = (model, crudControllerFactory) ->
 
               model.update user._id, updateObj, (err, obj) ->
                 if err
-                  res.json 500, {message: "error saving token to user " + err}
+                  res.status(500).json({message: "error saving token to user " + err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
                 else
                   resetObj =
-                    host: req.protocol + "://" + req.host
+                    host: req.protocol + "://" + req.hostname #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
                     email: user.email
                     token: token
 
                   model.sendResetInstructions resetObj, (err) ->
                     if err
-                      res.json 500, {message: err}
+                      res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
                     else
                       msg = "password reset instructions sent"
-                      res.json 200, {message: msg}
+                      res.status(200).json({message: msg}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
 
   getResetToken = (req, res) ->
     if req.body.email?
       model.findOneBy 'email', req.body.email, req.systemId, (err, user) ->
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if not user?
-          res.json 404, {message: "Could not find account for that e-mail"}
+          res.status(404).json({message: "Could not find account for that e-mail"}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
           model.generateToken (err, token) ->
             if err
-              res.json 500, {message: err}
+              res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else if not token
-              res.json 500, {message: "could not generate reset token"}
+              res.status(500).json({message: "could not generate reset token"}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
             else
               updateObj =
                 token: token
@@ -211,17 +212,17 @@ module.exports = (model, crudControllerFactory) ->
 
               model.update user._id, updateObj, (err, obj) ->
                 if err
-                  res.json 500, {message: "error saving token to user " + err}
+                  res.status(500).json({message: "error saving token to user " + err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
                 else
                   resetObj =
-                    host: req.protocol + "://" + req.host
+                    host: req.protocol + "://" + req.hostname #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
                     email: user.email
                     token: token
                     _id: user._id
 
-                  res.json 200, resetObj
+                  res.status(200).json(resetObj) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 500, { message:"No email passed." }
+      res.status(500).json({ message:"No email passed." }) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   exports = gi.common.extend {}, crud
   exports.index = index

@@ -7,14 +7,14 @@ permissionFilter = require './permissionFilter'
 module.exports = (app) ->
   permissionsMiddleware = permissionFilter app
 
-  passport.serializeUser = (user, done) ->
+  passport.serializeUser (user, done) ->
     obj =
       _id: user._id
       systemId: user.systemId
 
     done null, obj
 
-  passport.deserializeUser = (obj, done) ->
+  passport.deserializeUser (obj, done) ->
     app.models.users.findById obj._id, obj.systemId, (err, user) ->
       if err
         done err, null
@@ -45,17 +45,15 @@ module.exports = (app) ->
       if err
         callback(err, null) if callback
       else
-        isDefined = (value, cb) ->
-          cb(value?)
-        async.filter results, isDefined, (filteredResults) ->
-          callback(err, filteredResults) if callback
+        filteredResults = _.filter results, (value) -> return value or false
+        callback(err, filteredResults) if callback
 
   systemCheck = (req, res, next) ->
     #find environment by host
-    if req?.host
-      app.models.environments.forHost req.host, (err, result) ->
+    if req?.hostname
+      app.models.environments.forHost req.hostname, (err, result) -> #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
         if err
-          res.json 500, {message: err}
+          res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if result
           req.systemId = result.systemId
           req.environmentId = result._id
@@ -64,9 +62,9 @@ module.exports = (app) ->
               req.strategies = strategies
             exports._findUser req, res, next
         else
-          res.json 404, {message: 'environment not found'}
+          res.status(404).json({message: 'environment not found'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
-      res.json 500, {message: 'host not found on request object'}
+      res.status(500).json({message: 'host not found on request object'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   addExtraUserInfo = (req, res, next) ->
     if req.user.toObject?
@@ -79,7 +77,6 @@ module.exports = (app) ->
 
   findUser = (req, res, next) ->
     if req.isAuthenticated()
-      #console.log("authentication/index.coffee - Inside findUser() - Already Authenticated")
       addExtraUserInfo(req, res, next)
     else
       exports._hmacAuth req, res, (err, user) =>
@@ -90,7 +87,7 @@ module.exports = (app) ->
             if user and (not err)
               addExtraUserInfo(req, res, next)
             else
-              exports._basicAuth req, res, (err, user) -> ############################################## I ADDED THIS
+              exports._basicAuth req, res, (err, user) ->
                 if user and (not err)
                   addExtraUserInfo(req, res, next)
                 else
@@ -113,7 +110,7 @@ module.exports = (app) ->
               req.query.acl = 'public-read'
               next()
             else
-              res.json 401, {msg: 'not authorized'}
+              res.status(401).json({msg: 'not authorized'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
       else
         if req.route.method is 'get'
           #if we're not an admin, enforce public-read acl
@@ -122,7 +119,7 @@ module.exports = (app) ->
           req.query.acl = 'public-read'
           next()
         else
-          res.json 401, {msg: 'not authorized'}
+          res.status(401).json({msg: 'not authorized'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   publicRegisterAction = (req, res, next) ->
     systemCheck req, res, () ->
@@ -131,44 +128,32 @@ module.exports = (app) ->
         if setting
           next()
         else
-          res.json 403, {message: 'Public user registration is not enabled'}
+          res.status(403).json({message: 'Public user registration is not enabled'}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   hmacAuth = (req, res, next) ->
-    #console.log("authentication/index.coffee - Inside hmacAuth()")
     if _.indexOf(req.strategies, 'Hmac') is -1
-      #console.log("authentication/index.coffee - Inside hmacAuth() - NOT SUPPORTED")
       next 'Hmac strategy not supported', null
     else
-      #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - calling passport.authenticate()")
       passport.authenticate('hmac', (err, user, info) ->
         if err
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
           next err, null
         else if not user
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
           next info, null
         else
-          #console.log("authentication/index.coffee - Inside hmacAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
           req.user = user
           next null, user
       )(req, res, next)
 
-  basicAuth = (req, res, next) -> ############################################## I ADDED THIS
-    #console.log("authentication/index.coffee - Inside basicAuth()")
+  basicAuth = (req, res, next) ->
     if _.indexOf(req.strategies, 'Basic') is -1
-      #console.log("authentication/index.coffee - Inside basicAuth() - NOT SUPPORTED")
       next 'Basic strategy not supported', null
     else
-      #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - calling passport.authenticate()")
       passport.authenticate('basic', (err, user, info) ->
         if err
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> errored")
           next err, null
         else if not user
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> not authenticated")
           next info, null
         else
-          #console.log("authentication/index.coffee - Inside basicAuth() - IS SUPPORTED - called passport.authenticate() -> authenticated")
           req.user = user
           next null, user
       )(req, res, next)
@@ -192,7 +177,7 @@ module.exports = (app) ->
       if req.user?
         permissionsMiddleware req, res, next
       else
-        res.json 401, {}
+        res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   adminAction = (req, res, next) ->
     userAction req, res, () ->
@@ -200,7 +185,7 @@ module.exports = (app) ->
         if ok
           next()
         else
-          res.json 401, {}
+          res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   sysAdminAction = (req, res, next) ->
     userAction req, res, () ->
@@ -208,7 +193,7 @@ module.exports = (app) ->
         if ok
           next()
         else
-          res.json 401, {}
+          res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   isInRole = (role, user, callback) ->
     result = false
@@ -258,7 +243,7 @@ module.exports = (app) ->
 
   app.use passport.initialize()
   app.use passport.session()
-  app.use app.router
+  #app.use app.router #Removed 'app.router' for express 4.x compatibility
 
   #Having fired up passport authentication
   #link in the authentication routes:

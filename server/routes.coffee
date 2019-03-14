@@ -6,7 +6,7 @@ configure = (app, rest) ->
   app.put '/api/user'
   , app.middleware.userAction, app.controllers.user.updateMe
 
-  app.del '/api/user'
+  app.delete '/api/user' #Changed 'app.del' to 'app.delete' for express 4.x compatibility
   , app.middleware.userAction, app.controllers.user.destroyMe
 
   app.get '/api/user/isAvailable'
@@ -36,8 +36,13 @@ configure = (app, rest) ->
   rest.routeResource 'users', app
   , app.middleware.adminAction, app.controllers.user
 
-  rest.routeResource 'settings', app
-  , app.middleware.publicReadAction, app.controllers.setting
+  #rest.routeResource 'settings', app
+  #, app.middleware.publicReadAction, app.controllers.setting
+  app.get "/api/settings", app.middleware.publicAction, app.controllers.setting.index, (req, res) ->
+    if res.giResult?
+      res.status(200).json(res.giResult)
+    else
+      res.status(500).json({message: 'something went wrong'})
 
   rest.routeResource 'activities', app
   , app.middleware.userAction, app.controllers.activity

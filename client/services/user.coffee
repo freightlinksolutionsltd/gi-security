@@ -38,8 +38,9 @@ angular.module('gi.security').provider 'giUser', () ->
     isUsernameAvailable = (username) ->
       deferred = $q.defer()
       if username?
-        $http.get('/api/user/isAvailable?username=' + encodeURIComponent(username)).success( (data) ->
-          deferred.resolve data.available
+        $http.get('/api/user/isAvailable?username=' +
+          encodeURIComponent(username)).success( (data) ->
+            deferred.resolve data.available
         ).error (data) ->
           Log.warn("Is Username Available Errored")
           Log.warn(data)

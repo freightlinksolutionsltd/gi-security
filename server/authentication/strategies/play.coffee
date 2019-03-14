@@ -37,7 +37,7 @@ Strategy::authenticate = (req) ->
       systemId = req.systemId
 
       playRequestOptions =
-        host: req.host
+        host: req.hostname #Changed 'req.host' to 'req.hostname' for express 4.x compatibility
         port: 80
         path: '/cookievalidator'
         headers:

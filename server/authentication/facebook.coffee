@@ -31,4 +31,4 @@ module.exports = (users) ->
     , middleware
     , passport.authenticate('facebook-sdk')
     , (req, res) ->
-      res.json 200
+      res.status(200).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
