@@ -19,7 +19,7 @@
     "bcryptjs": "*",
     "coffeescript": "^2.3.2",
     "connect-mongo": "^2.0.3",
-    "gi-util": "https://github.com/aitutaki/gi-util.git",
+    "gi-util": "https://github.com/freightlinksolutionsltd/gi-util.git",
     "grunt": "^1.0.3",
     "moment": "~2.22.2",
     "passport": "~0.4.0",

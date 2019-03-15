@@ -11,8 +11,8 @@
     "angular-resource": "1.3.6",
     "angular-route": "1.3.6",
     "angular-touch": "1.3.6",
-    "gi-util": "https://github.com/aitutaki/gi-util.git",
-    "gi-ui": "https://github.com/aitutaki/gi-ui.git",
+    "gi-util": "https://github.com/freightlinksolutionsltd/gi-util.git",
+    "gi-ui": "https://github.com/freightlinksolutionsltd/gi-ui.git",
 
     "underscore": "~1.5.2"
   },
