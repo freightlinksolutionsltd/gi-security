@@ -25,7 +25,7 @@ configure = (app, rest) ->
   , app.middleware.adminAction, app.controllers.user.getResetToken
 
   app.post '/api/user/verify'
-  , app.middleware.userAction, app.controllers.user.verify
+  , app.middleware.publicAction, app.controllers.user.verify
 
   app.post '/api/verifyUser'
   , app.middleware.publicAction, app.controllers.user.verify
@@ -64,5 +64,7 @@ configure = (app, rest) ->
 
   rest.routeResource 'permissions', app
   , app.middleware.adminAction, app.controllers.permission
+
+  app.get "/api/2faqr", app.middleware.userAction, app.controllers.user.getQRCode
 
 exports.configure = configure

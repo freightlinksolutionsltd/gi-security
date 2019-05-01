@@ -1,5 +1,9 @@
 _ = require 'underscore'
 gi = require 'gi-util'
+qrcode = require "qrcode"
+otplib = require "otplib"
+base32 = require "base32"
+
 logger = gi.common
 
 module.exports = (model, crudControllerFactory) ->
@@ -42,6 +46,7 @@ module.exports = (model, crudControllerFactory) ->
               delete output.systemId
               delete output.userIds
               delete output.password
+              delete output.totpSecret
               output.valid = true
               res.status(200).json(output) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
     else
@@ -54,6 +59,8 @@ module.exports = (model, crudControllerFactory) ->
       else
         user.password = null
         delete user.password
+        user.totpSecret = null
+        delete user.totpSecret
         res.status(200).json(user) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   updateMe = (req, res) ->
@@ -69,6 +76,8 @@ module.exports = (model, crudControllerFactory) ->
         else
           user.password = null
           delete user.password
+          user.totpSecret = null
+          delete user.totpSecret
           res.status(200).json(user) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   destroyMe = (req, res) ->
@@ -95,12 +104,16 @@ module.exports = (model, crudControllerFactory) ->
         delete r.obj.password
         r.obj.confirm = null
         delete r.obj.confirm
+        r.obj.totpSecret = null
+        delete r.obj.totpSecret
       res.status(res.giResultCode).json(res.giResult)
     else
       res.giResult.password = null
       delete res.giResult.password
       res.giResult.confirm = null
       delete res.giResult.confirm
+      r.obj.totpSecret = null
+      delete r.obj.totpSecret
       res.status(200).json(res.giResult) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   index = (req, res) ->
@@ -108,6 +121,8 @@ module.exports = (model, crudControllerFactory) ->
       _.each res.giResult, (u) ->
         u.password = null
         delete u.password
+        u.totpSecret = null
+        delete u.totpSecret
       res.status(200).json(res.giResult) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   findById = (req, res) ->
@@ -224,6 +239,37 @@ module.exports = (model, crudControllerFactory) ->
     else
       res.status(500).json({ message:"No email passed." }) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
+  getQRCode = (req, res) ->
+    _getSecret = (user, cb) ->
+      model.findOneBy '_id', user._id, user.systemId, (err, user) ->
+        if err
+          cb err, null
+        else
+          if user.toObject().totpSecret
+            cb null, user.toObject().totpSecret
+          else
+            secret = otplib.authenticator.generateSecret()
+            model.update user._id, { systemId: req.systemId, $set: { totpSecret: secret }}, (err, newUser) ->
+              cb err, secret || null
+
+    if not req.user
+      res.status(401).end()
+    else
+      _getSecret req.user, (err, secret) ->
+        if err
+          res.status(500).send("Unable to generate secret")
+        else
+          otpauth = otplib.authenticator.keyuri(encodeURIComponent(req.user.email), encodeURIComponent("f2f2"), secret);
+          qrcode.toDataURL otpauth, (err, imageUrl) ->
+            if err
+              res.status(500).send("Unable to generate QR Code");
+            else
+              res.set "Content-Type", "image/png"
+              res.set "Content-Length", imageUrl.length
+              imageUrl = imageUrl.split(",")[1]
+              buff = Buffer.from imageUrl, "base64"
+              res.status(200).send(buff);
+
   exports = gi.common.extend {}, crud
   exports.index = index
   exports.show = findById
@@ -238,4 +284,5 @@ module.exports = (model, crudControllerFactory) ->
   exports.checkResetToken = checkResetToken
   exports.verify = verify
   exports.isUsernameAvailable = isUsernameAvailable
+  exports.getQRCode = getQRCode
   exports

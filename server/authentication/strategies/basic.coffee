@@ -12,7 +12,7 @@ Strategy = (options, verify) ->
   
   @_userNameField = options.userNameField or 'username'
   @_passwordField = options.passwordField or 'password'
-
+  @_tokenField = options.tokenField or 'token'
   
   passport.Strategy.call this
   @name = 'basic'
@@ -29,6 +29,7 @@ Strategy::authenticate = (req, options) ->
 
   username = req.body[@_userNameField] or undefined
   password = req.body[@_passwordField] or undefined
+  token = req.body[@_tokenField]  or undefined
   systemId = req.systemId or undefined
 
   #SR - now check for the existence of an "Authorization" header and, if found, resolve the username and password from that
@@ -50,9 +51,9 @@ Strategy::authenticate = (req, options) ->
       @success user, info
 
   if @_passReqToCallback
-    @_verify req, username, password, systemId, verified
+    @_verify req, username, password, token, systemId, verified
   else
-    @_verify username, password, systemId, verified
+    @_verify username, password, token, systemId, verified
 
 # Expose `Strategy`.
 exports.Strategy = Strategy

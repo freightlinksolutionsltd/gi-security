@@ -1,12 +1,12 @@
 passport = require 'passport'
 http = require 'http'
 strategies = require './strategies'
+otplib = require "otplib"
 
 module.exports = (users) ->
   passport.use new strategies.basic.Strategy(
-    (email, password, systemId, done) ->
+    (email, password, token, systemId, done) ->
       #users.findOneBy 'email', email, systemId, (err, user) ->
-      console.log "Logging in " + email
       opts =
         systemId: systemId
         email: email
@@ -14,22 +14,30 @@ module.exports = (users) ->
           $exists: true
       users.findOne opts, (err, user) ->
         if err
-          console.log err
           done null, false, {message: err}
         else if not user
-          console.log "no user"
-          done null, false, {message: 'User not found'}
+          done null, false, {message: 'User or password incorrect'}
         else
           users.comparePassword user, password, (err, isValid) ->
             if err
-              console.log "pwd err " + err
               done err
             else if not isValid
-              console.log "Bad pwd"
-              done null, false, {message: 'Incorrect password'}
+              done null, false, {message: 'User or password incorrect'}
             else
-              console.log "got " + user.firstName
-              done null, user
+              user = user.toObject()
+              if user.twoFactorEnabled
+                if not token or token is ""
+                  done null, false, { twoFactorRequired: "", message: "Second factor required" }
+                else
+                  if otplib.authenticator.check token, user.totpSecret
+                    done null, user
+                  else
+                    done null, false, { message: 'Second factor is invalid' }
+              else
+                if err
+                  done err
+                else
+                  done null, user
   )
 
   routes: (app, middleware) ->

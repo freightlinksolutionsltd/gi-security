@@ -1,3 +1,4 @@
+<!--
 <div class="hero-unit">
   <div class="alert alert-danger" ng-if="loginStatus.failed">
     <button type="button" 
@@ -23,3 +24,40 @@
     <button ng-click="loginWithFacebook()"><img src="/img/login-with-facebook.png" width="154" height="22"></button> 
   </div>
 </div>
+-->
+<form name="loginForm">
+  <div class="col-md-4"></div>
+  <div class="col-md-4">
+    <div class="alert alert-danger" ng-if="loginStatus.failed">
+      <button type="button" class="close dismissLogin" ng-click="dismissLoginAlert()">&times;</button>
+      <strong>Login Failed!</strong>: Username / Password was incorrect
+    </div>
+    <div class="panel panel-default">
+      <div class="panel-heading"><h3>Login to F2F2</h3></div>
+      <div class="panel-body" ng-show="!tokenMode">
+        <div class="form-group">
+          <label class="control-label">Username/Email</label>
+          <input type="text" class="form-control" ng-model="cred.username">
+        </div>
+        <div class="form-group">
+          <label class="control-label">Password</label>
+          <input type="password" class="form-control" ng-model="cred.password">
+        </div>
+      </div>
+      <div class="panel-footer" ng-show="!tokenMode">
+        <button class="btn btn-primary" ng-click="verify()">Login</button>
+      </div>
+
+      <div class="panel-body" ng-show="tokenMode">
+        <div class="form-group">
+          <label class="control-label">2 Factor Code</label>
+          <input type="text" class="form-control" ng-model="cred.token">
+        </div>
+      </div>
+      <div class="panel-footer" ng-show="tokenMode">
+        <button class="btn btn-primary" ng-click="login()">Login</button>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4"></div>
+</form>

@@ -89,6 +89,13 @@ module.exports = (dal, options) ->
       else
         callback 'password does not meet minimum requirements', false
 
+  compareToken = (user, token, callback) ->
+    if token?
+      # Somehow validate the token received
+      callback null, true
+    else
+      callback 'Second factor not received'
+
   update = (id, json, callback) ->
     delete json.confirm
     crud.findById id, json.systemId, (err, user) ->
@@ -154,6 +161,7 @@ module.exports = (dal, options) ->
   exports.findOneByProviderId = findOneByProviderId
   exports.resetAPISecret = resetAPISecret
   exports.comparePassword = comparePassword
+  exports.compareToken = compareToken
   exports.create = create
   exports.generateToken = generateToken
   exports.sendResetInstructions = sendResetInstructions

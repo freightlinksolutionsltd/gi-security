@@ -8,10 +8,29 @@ angular.module('gi.security').controller 'loginController'
   $scope.loginStatus =
     failed: false
 
+  $scope.verify = () ->
+    #$scope.tokenMode = true
+    creds =
+      email: $scope.cred.username
+      password: $scope.cred.password
+    $http.post('/api/verifyUser', creds).success( (user) ->
+      if user.valid
+        if user.twoFactorEnabled
+          $scope.tokenMode = true
+        else
+          $scope.login()
+      else
+        $scope.tokenMode = false
+        $scope.loginStatus.failed = true
+    ).error () ->
+      $scope.tokenMode = false
+      $scope.loginStatus.failed = true
+    
   $scope.login = () ->
     $http.post('/api/login', $scope.cred).success( () ->
       Auth.loginConfirmed()
     ).error () ->
+      $scope.tokenMode = false
       $scope.loginStatus.failed = true
 
   $scope.loginWithFacebook = () ->
