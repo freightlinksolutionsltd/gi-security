@@ -261,7 +261,7 @@ module.exports = (model, crudControllerFactory) ->
         else
           appName = "F2F2"
           if process.env["F2F2_ENV"] isnt "prod" then appName += "-" + process.env["F2F2_ENV"]
-          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent(appName), secret);
+          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent(appName), secret)
           qrcode.toDataURL otpauth, (err, imageUrl) ->
             if err
               res.status(500).send("Unable to generate QR Code");
@@ -270,7 +270,7 @@ module.exports = (model, crudControllerFactory) ->
               res.set "Content-Length", imageUrl.length
               imageUrl = imageUrl.split(",")[1]
               buff = Buffer.from imageUrl, "base64"
-              res.status(200).send(buff);
+              res.status(200).send(buff); 
 
   exports = gi.common.extend {}, crud
   exports.index = index

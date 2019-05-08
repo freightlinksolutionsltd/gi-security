@@ -194,6 +194,14 @@ module.exports = (app) ->
           next()
         else
           res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
+  
+  mgrAction = (req, res, next) ->
+    userAction req, res, () ->
+      isInRole 'Manager', req.user, (inRole) ->
+        if inRole
+          next()
+        else
+          res.status(403).end()
 
   isInRole = (role, user, callback) ->
     result = false
@@ -260,6 +268,7 @@ module.exports = (app) ->
     adminAction: adminAction
     sysAdminAction: sysAdminAction
     publicRegisterAction: publicRegisterAction
+    mgrAction: mgrAction
     _getSystemStrategies: getSystemStrategies
     _systemCheck: systemCheck
     _hmacAuth: hmacAuth
