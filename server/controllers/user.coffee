@@ -259,7 +259,9 @@ module.exports = (model, crudControllerFactory) ->
         if err
           res.status(500).send("Unable to generate secret")
         else
-          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent("f2f2"), secret);
+          appName = "F2F2"
+          if process.env["F2F2_ENV"] isnt "prod" then appName += "-" + process.env["F2F2_ENV"]
+          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent(appName), secret);
           qrcode.toDataURL otpauth, (err, imageUrl) ->
             if err
               res.status(500).send("Unable to generate QR Code");
