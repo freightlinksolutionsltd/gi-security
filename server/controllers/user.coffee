@@ -240,26 +240,26 @@ module.exports = (model, crudControllerFactory) ->
       res.status(500).json({ message:"No email passed." }) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   getQRCode = (req, res) ->
-    _getSecret = (user, cb) ->
-      model.findOneBy '_id', user._id, user.systemId, (err, user) ->
+    _getSecret = (systemId, userId, cb) ->
+      model.findOneBy '_id', userId, systemId, (err, user) ->
         if err
-          cb err, null
+          cb err, null, null
         else
           if user.toObject().totpSecret
-            cb null, user.toObject().totpSecret
+            cb null, user.email, user.toObject().totpSecret
           else
             secret = otplib.authenticator.generateSecret()
             model.update user._id, { systemId: req.systemId, $set: { totpSecret: secret }}, (err, newUser) ->
-              cb err, secret || null
+              cb err, user.email, secret || null
 
     if not req.user
       res.status(401).end()
     else
-      _getSecret req.user, (err, secret) ->
+      _getSecret req.systemId, (req.params.id or req.user._id), (err, email, secret) ->
         if err
           res.status(500).send("Unable to generate secret")
         else
-          otpauth = otplib.authenticator.keyuri(encodeURIComponent(req.user.email), encodeURIComponent("f2f2"), secret);
+          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent("f2f2"), secret);
           qrcode.toDataURL otpauth, (err, imageUrl) ->
             if err
               res.status(500).send("Unable to generate QR Code");
