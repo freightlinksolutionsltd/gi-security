@@ -66,5 +66,6 @@ configure = (app, rest) ->
   , app.middleware.adminAction, app.controllers.permission
 
   app.get "/api/2faqr", app.middleware.userAction, app.controllers.user.getQRCode
+  app.get "/api/users/:id/qr", app.middleware.mgrAction, app.controllers.user.getQRCode
 
 exports.configure = configure

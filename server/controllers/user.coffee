@@ -240,28 +240,28 @@ module.exports = (model, crudControllerFactory) ->
       res.status(500).json({ message:"No email passed." }) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
 
   getQRCode = (req, res) ->
-    _getSecret = (user, cb) ->
-      model.findOneBy '_id', user._id, user.systemId, (err, user) ->
+    _getSecret = (systemId, userId, cb) ->
+      model.findOneBy '_id', userId, systemId, (err, user) ->
         if err
-          cb err, null
+          cb err, null, null
         else
           if user.toObject().totpSecret
-            cb null, user.toObject().totpSecret
+            cb null, user.email, user.toObject().totpSecret
           else
             secret = otplib.authenticator.generateSecret()
             model.update user._id, { systemId: req.systemId, $set: { totpSecret: secret }}, (err, newUser) ->
-              cb err, secret || null
+              cb err, user.email, secret || null
 
     if not req.user
       res.status(401).end()
     else
-      _getSecret req.user, (err, secret) ->
+      _getSecret req.systemId, (req.params.id or req.user._id), (err, email, secret) ->
         if err
           res.status(500).send("Unable to generate secret")
         else
           appName = "F2F2"
           if process.env["F2F2_ENV"] isnt "prod" then appName += "-" + process.env["F2F2_ENV"]
-          otpauth = otplib.authenticator.keyuri(encodeURIComponent(req.user.email), encodeURIComponent(appName), secret);
+          otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent(appName), secret)
           qrcode.toDataURL otpauth, (err, imageUrl) ->
             if err
               res.status(500).send("Unable to generate QR Code");
@@ -270,7 +270,7 @@ module.exports = (model, crudControllerFactory) ->
               res.set "Content-Length", imageUrl.length
               imageUrl = imageUrl.split(",")[1]
               buff = Buffer.from imageUrl, "base64"
-              res.status(200).send(buff);
+              res.status(200).send(buff); 
 
   exports = gi.common.extend {}, crud
   exports.index = index
