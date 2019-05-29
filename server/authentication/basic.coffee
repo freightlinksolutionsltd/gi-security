@@ -2,6 +2,7 @@ passport = require 'passport'
 http = require 'http'
 strategies = require './strategies'
 otplib = require "otplib"
+moment = require 'moment'
 
 module.exports = (users) ->
   passport.use new strategies.basic.Strategy(
@@ -44,5 +45,20 @@ module.exports = (users) ->
     app.post '/api/login'
     , middleware
     , passport.authenticate('basic')
+    , (req, res, next) ->
+      console.log req.user.email
+      opts =
+        systemId: req.systemId
+        email: req.user.email
+        timestamp: moment()
+        ipAddress: req.ip
+        department: req.user.department
+        
+      app.models.logs.create opts, (err, log) ->
+        if err
+          console.log "Could not save log"
+        else
+          console.log "Log saved"
+        next()
     , (req, res) ->
       res.status(200).json() #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility

@@ -7,6 +7,7 @@ settings = require './settings'
 activities = require './activities'
 categories = require './categories'
 permissions = require './permissions'
+logs = require './logs'
 
 module.exports = (dal, options) ->
   environmentsModel = environments dal
@@ -19,3 +20,4 @@ module.exports = (dal, options) ->
   activities: activities dal
   categories: categories dal
   permissions: permissions dal
+  logs: logs dal
