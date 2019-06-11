@@ -51,7 +51,7 @@ module.exports = (users) ->
         systemId: req.systemId
         email: req.user.email
         timestamp: moment()
-        ipAddress: req.ip
+        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress;
         department: req.user.department
         
       app.models.logs.create opts, (err, log) ->
