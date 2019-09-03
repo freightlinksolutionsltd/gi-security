@@ -18,6 +18,7 @@ module.exports = (dal, options) ->
       countryCode: 'String'
       userIds: [{provider: 'String', providerId: 'String'}]
       roles: [{type: 'ObjectId', ref: 'Role'}]
+      createdById: 'ObjectId'
     options:
       strict: false
 

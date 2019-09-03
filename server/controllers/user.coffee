@@ -130,6 +130,7 @@ module.exports = (model, crudControllerFactory) ->
       stripPasswords res
 
   create = (req, res) ->
+    req.body.createdById = req.user._id
     crud.create req, res, () ->
       stripPasswords res
 
