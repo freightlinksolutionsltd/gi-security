@@ -9,29 +9,26 @@ angular.module('gi.security').config([
   {
       controller: 'loginController',
       templateUrl: 'gi-login.html'
-    }).when('/user',
-  {
-      controller: 'userController',
-      templateUrl: 'gi-user.html'
+    //.when '/user',
+    //  controller: 'userController'
+    //  templateUrl: 'gi-user.html'
     }).when('/logout',
   {
       controller: 'logoutController',
       templateUrl: 'gi-logout.html'
-    }).when('/roles',
-  {
-      controller: 'roleController',
-      templateUrl: 'gi-role.html'
-    }).when('/users',
-  {
-      controller: 'usersController',
-      templateUrl: 'gi-userManagement.html'
-    }).when('/permissions',
-  {
-      controller: 'permissionController',
-      templateUrl: 'gi-permissions.html'
     });
   }
 ]);
+
+//.when '/roles',
+//  controller: 'roleController'
+//  templateUrl: 'gi-role.html'
+//.when '/users',
+//  controller: 'usersController'
+//  templateUrl: 'gi-userManagement.html'
+//.when '/permissions',
+//  controller: 'permissionController'
+//  templateUrl: 'gi-permissions.html'
 
 angular.module('gi.security').controller('loginController', [
   '$scope',
@@ -370,7 +367,7 @@ angular.module('gi.security').filter('permissionUser', [
   }
 ]);
 
-angular.module('gi.security').run(['$templateCache', function($templateCache) {$templateCache.put('gi-login.html','<!--\n<div class="hero-unit">\n  <div class="alert alert-danger" ng-if="loginStatus.failed">\n    <button type="button" \n            class="close dismissLogin" \n            ng-click="dismissLoginAlert()">&times;</button>\n    <strong>Login Failed!</strong>: Username / Password was incorrect\n  </div>\n  <h3>Please Login</h3>\n  <div  class="well form-inline">\n    <input  type="text" \n            ng-model="cred.username" \n            class="input" \n            placeholder="Email">\n    <input  type="password" \n            ng-model="cred.password" \n            class="input-small" \n            placeholder="Password">\n    <button ng-disabled="!cred.username || !cred.password" \n            class="btn btn-primary basicLogin" \n            ng-click="login()">Login</button>\n  </div>\n  <div class="well form loginWithFacebook" ng-if="allowFacebookLogin">\n    <button ng-click="loginWithFacebook()"><img src="/img/login-with-facebook.png" width="154" height="22"></button> \n  </div>\n</div>\n-->\n<form name="loginForm">\n  <div class="col-md-4"></div>\n  <div class="col-md-4">\n    <div class="alert alert-danger" ng-if="loginStatus.failed">\n      <button type="button" class="close dismissLogin" ng-click="dismissLoginAlert()">&times;</button>\n      <strong>Login Failed!</strong>: Username / Password was incorrect\n    </div>\n    <div class="panel panel-default">\n      <div class="panel-heading"><h3>Login to F2F2</h3></div>\n      <div class="panel-body" ng-show="!tokenMode">\n        <div class="form-group">\n          <label class="control-label">Username/Email</label>\n          <input type="text" class="form-control" ng-model="cred.username">\n        </div>\n        <div class="form-group">\n          <label class="control-label">Password</label>\n          <input type="password" class="form-control" ng-model="cred.password">\n        </div>\n      </div>\n      <div class="panel-footer" ng-show="!tokenMode">\n        <button class="btn btn-primary" ng-click="verify()">Login</button>\n      </div>\n\n      <div class="panel-body" ng-show="tokenMode">\n        <div class="form-group">\n          <label class="control-label">2 Factor Code</label>\n          <input type="text" class="form-control" ng-model="cred.token">\n        </div>\n      </div>\n      <div class="panel-footer" ng-show="tokenMode">\n        <button class="btn btn-primary" ng-click="login()">Login</button>\n      </div>\n    </div>\n  </div>\n  <div class="col-md-4"></div>\n</form>');
+angular.module('gi.security').run(['$templateCache', function($templateCache) {$templateCache.put('gi-login.html','<!--\n<div class="hero-unit">\n  <div class="alert alert-danger" ng-if="loginStatus.failed">\n    <button type="button" \n            class="close dismissLogin" \n            ng-click="dismissLoginAlert()">&times;</button>\n    <strong>Login Failed!</strong>: Username / Password was incorrect\n  </div>\n  <h3>Please Login</h3>\n  <div  class="well form-inline">\n    <input  type="text" \n            ng-model="cred.username" \n            class="input" \n            placeholder="Email">\n    <input  type="password" \n            ng-model="cred.password" \n            class="input-small" \n            placeholder="Password">\n    <button ng-disabled="!cred.username || !cred.password" \n            class="btn btn-primary basicLogin" \n            ng-click="login()">Login</button>\n  </div>\n  <div class="well form loginWithFacebook" ng-if="allowFacebookLogin">\n    <button ng-click="loginWithFacebook()"><img src="/img/login-with-facebook.png" width="154" height="22"></button> \n  </div>\n</div>\n-->\n<form name="loginForm">\n  <br>\n  <div class="col-md-4"></div>\n  <div class="col-md-4">\n    <div class="alert alert-danger" ng-if="loginStatus.failed">\n      <button type="button" class="close dismissLogin" ng-click="dismissLoginAlert()">&times;</button>\n      <strong>Login Failed!</strong>: Username / Password was incorrect\n    </div>\n    <div class="panel panel-default">\n      <div class="panel-heading"><h3>Login to F2F2</h3></div>\n      <div class="panel-body" ng-show="!tokenMode">\n        <div class="form-group">\n          <label class="control-label">Username/Email</label>\n          <input type="text" class="form-control" ng-model="cred.username">\n        </div>\n        <div class="form-group">\n          <label class="control-label">Password</label>\n          <input type="password" class="form-control" ng-model="cred.password">\n        </div>\n      </div>\n      <div class="panel-footer" ng-show="!tokenMode">\n        <button class="btn btn-primary" ng-click="verify()">Login</button>\n      </div>\n\n      <div class="panel-body" ng-show="tokenMode">\n        <div class="form-group">\n          <label class="control-label">2 Factor Code</label>\n          <input type="text" class="form-control" ng-model="cred.token">\n        </div>\n      </div>\n      <div class="panel-footer" ng-show="tokenMode">\n        <button class="btn btn-primary" ng-click="login()">Login</button>\n      </div>\n    </div>\n  </div>\n  <div class="col-md-4"></div>\n</form>');
 $templateCache.put('gi-logout.html','<div class="hero-unit">\n  <h3>You have been securely logged out</h3>\n  <a href="/login" class="btn btn-primary">Log Back In</a>\n</div>');
 $templateCache.put('gi-permissionForm.html','<div class="well form">\n  <div class="form-group"\n    <label>User:</label>\n    <gi-select2 options="users" selection="selectedUser" field="firstName" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Resource Type:</label>\n    <gi-select2 options="resourceTypes" selection="selectedResourceType" field="name" style="width:100%"/>\n  </div>\n  <div class="form-group">\n    <label>Restriction:</label>\n    <select class="form-control" \n            ng-model="permission.restriction" \n            ng-options="r.value as r.name for r in restrictions"></select>\n  </div>\n  <div class="form-group">\n    <label>{{permission.resourceType.name}}</label>\n    <label>Keys:</label>\n    <gi-select2 tags custom options="keys" selection="selectedKeys" field="name" style="width:100%"/>\n  </div>\n  <button class="btn btn-primary" ng-click="save()">\n    {{submitText}}\n  </button>\n  <button ng-show="showDelete" class="btn btn-danger" ng-click="confirmDelete()" >\n    <span class="glyphicon glyphicon-trash white"></span>\n  </button>\n\n</div>\n<gi-modal visible="showDeleteModal"\n        title="Please Confirm Delete Action">\n  <div class="body">\n    <p>Delete this permission - are you sure?</p>\n    <p>Please continue only if you are 100% \n      you understand what you\'re deleting.  \n      There is no way to retrieve the data after this point.</p>\n  </div>\n  <div class="footer">\n    <button ng-click="deletePermission()"\n            class="btn btn-danger">\n      Delete It!\n    </button>\n  </div>\n</gi-modal>');
 $templateCache.put('gi-permissions.html','<div class="container">\n  <div class="row">\n    <div class="col-md-6">\n      <gi-datatable items="permissions" \n                 selected-items="selectedPermissions"\n                 options="options" >\n        <div class="header">\n          <label>User</label>\n          <label>Resource</label>\n          <label>Restriction</label>\n        </div>\n        <div class="body">\n          <label class="filter">permissionUser</label>\n          <label class="property">resourceType</label>\n          <label class="filter">permissionRestriction</label>\n        </div>\n      </gi-datatable>\n    </div>\n    <div class="col-md-6">\n      <permission-form permission="permission" submit-text="{{submitText}}" submit="savePermission(permission)"></permission-form>\n    </div>\n  </div>\n</div>');
