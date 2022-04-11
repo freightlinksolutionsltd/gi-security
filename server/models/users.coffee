@@ -140,7 +140,7 @@ module.exports = (dal, options) ->
 
   create = (json, callback) ->
     delete json.confirm
-    crud.findOneBy 'email', json.email, json.systemId , (err, user) ->
+    crud.findOne { "email" : { $regex : new RegExp(json.email, "i") }, "systemId": json.systemId }, (err, user) ->
       if err and err isnt "Cannot find User"
         callback err, null
       else if user?.email is json.email
