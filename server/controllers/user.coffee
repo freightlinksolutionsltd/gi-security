@@ -13,7 +13,7 @@ module.exports = (model, crudControllerFactory) ->
     systemId = req.systemId
     email = req.query.username
     if email?
-      model.findOne { "email" : { $regex : new RegExp(email, "i") }, "systemId": systemId }, (err, user) ->
+      model.findOne { "email" : { $regex : new RegExp("^" + email, "i") }, "systemId": systemId }, (err, user) ->
         if err?
           if err is "Cannot find User"
             res.status(200).json({available: true}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
@@ -33,7 +33,7 @@ module.exports = (model, crudControllerFactory) ->
     output = {}
 
     if email? and password? and systemId?
-      model.findOne { "email" : { $regex : new RegExp(email, "i") }, "systemId": systemId }, (err, user) ->
+      model.findOne { "email" : { $regex : new RegExp("^" + email, "i") }, "systemId": systemId }, (err, user) ->
         if err or (not user)
           res.status(200).json({valid: false}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else
@@ -175,7 +175,7 @@ module.exports = (model, crudControllerFactory) ->
     else
       #look for a user with the specified e-mail
       #generate a random token
-      model.findOne { "email" : { $regex : new RegExp(req.body.email, "i") }, "systemId": req.systemId }, (err, user) ->
+      model.findOne { "email" : { $regex : new RegExp("^" + req.body.email, "i") }, "systemId": req.systemId }, (err, user) ->
         if err
           res.status(500).json({message: err}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
         else if not user?

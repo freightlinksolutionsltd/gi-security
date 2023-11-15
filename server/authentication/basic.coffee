@@ -11,7 +11,7 @@ module.exports = (users) ->
       opts =
         systemId: systemId
         email: 
-          $regex : new RegExp(email, "i")
+          $regex : new RegExp("^" + email, "i")
         "roles.0":
           $exists: true
       users.findOne opts, (err, user) ->
