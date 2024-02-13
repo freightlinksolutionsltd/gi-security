@@ -14,7 +14,7 @@ module.exports = (app) ->
     DESTROY: 16
 
   (req, res, next) ->
-   
+    return next()
     options =
       query:
         systemId: req.systemId

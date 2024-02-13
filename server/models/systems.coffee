@@ -16,8 +16,11 @@ module.exports = (dal) ->
   #This is special - it's a model function
   #that does not filter by systemId (as it is used to find systemIds)
   all = (cb) ->
-    model.find {}, (err, obj) ->
-      cb err, obj
+    try
+      obj = await model.find({}).exec() #, (err, obj) ->
+      cb null, obj
+    catch e
+      cb e
 
   exports = dal.crudFactory model
   exports.all = all

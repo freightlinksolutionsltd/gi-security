@@ -13,7 +13,7 @@ module.exports = (dal) ->
       order: 'Number'
       title: 'String'
       description: 'String'
-      size: 'Long'
+      size: 'Number'
       s3alternates: ['String']
     
   modelDefinition.schema = dal.schemaFactory modelDefinition
