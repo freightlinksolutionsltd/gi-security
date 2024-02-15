@@ -140,13 +140,14 @@ module.exports = (dal, options) ->
 
   create = (json, callback) ->
     delete json.confirm
-    crud.findOne { "email" : { $regex : new RegExp(json.email, "i") }, "systemId": json.systemId }, (err, user) ->
-      if err and err isnt "Cannot find User"
-        callback err, null
-      else if user?.email is json.email
+    try
+      user = await crud.findOne { "email" : { $regex : new RegExp(json.email, "i") }, "systemId": json.systemId }
+      if user?.email is json.email
         callback 'Username already exists'
       else
         crud.create json, callback
+    catch e
+      callback e, null
 
   updateQuery = (query, change, callback) ->
     delete change.confirm
