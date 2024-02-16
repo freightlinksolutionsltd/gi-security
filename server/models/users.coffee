@@ -107,10 +107,10 @@ module.exports = (dal, options) ->
           #call save in case the password has changed
           if json.password
             user.password = json.password
-            user.save (err, savedUser) ->
-              if savedUser and savedUser.password
-                json.password = savedUser.password
-              crud.update id, json, callback
+            savedUser = await user.save()
+            if savedUser and savedUser.password
+              json.password = savedUser.password
+            crud.update id, json, callback
           else
             delete json.password
             crud.update id, json, callback
