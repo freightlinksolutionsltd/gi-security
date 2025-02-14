@@ -1,6 +1,6 @@
 AWS = require 'aws-sdk'
 _ = require 'underscore'
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 
 module.exports = (models, crudControllerFactory) ->
   crudController  = crudControllerFactory(models.files)
@@ -47,7 +47,7 @@ module.exports = (models, crudControllerFactory) ->
                       awsConfig =
                         accessKeyId: awsKey.value
                         secretAccessKey: awsSecret.value
-                      
+
                       AWS.config.update awsConfig
 
                       s3 = new AWS.S3()
@@ -66,10 +66,10 @@ module.exports = (models, crudControllerFactory) ->
 
                       s3.deleteObjects deleteParams, (err, data) ->
                         crudController.destroy req, res
-      
+
                 else
                   res.status(404).json("could not find file with that id") #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
-  
+
   exports = gi.common.extend {}, crudController
   exports.create = create
   exports.destroy = destroy

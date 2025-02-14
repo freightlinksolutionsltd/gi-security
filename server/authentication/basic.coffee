@@ -10,7 +10,7 @@ module.exports = (users) ->
       #users.findOneBy 'email', email, systemId, (err, user) ->
       opts =
         systemId: systemId
-        email: 
+        email:
           $regex : new RegExp("^" + email, "i")
         "roles.0":
           $exists: true
@@ -52,9 +52,9 @@ module.exports = (users) ->
         systemId: req.systemId
         email: req.user.email
         timestamp: moment()
-        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+        ipAddress: req.headers['x-forwarded-for'] || req.connection.remoteAddress
         department: req.user.department
-        
+
       app.models.logs.create opts, (err, log) ->
         if err
           console.log "Could not save log"

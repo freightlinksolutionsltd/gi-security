@@ -1,5 +1,5 @@
 _ = require 'underscore'
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 qrcode = require "qrcode"
 otplib = require "otplib"
 base32 = require "base32"
@@ -265,13 +265,13 @@ module.exports = (model, crudControllerFactory) ->
           otpauth = otplib.authenticator.keyuri(encodeURIComponent(email), encodeURIComponent(appName), secret)
           qrcode.toDataURL otpauth, (err, imageUrl) ->
             if err
-              res.status(500).send("Unable to generate QR Code");
+              res.status(500).send("Unable to generate QR Code")
             else
               res.set "Content-Type", "image/png"
               res.set "Content-Length", imageUrl.length
               imageUrl = imageUrl.split(",")[1]
               buff = Buffer.from imageUrl, "base64"
-              res.status(200).send(buff); 
+              res.status(200).send(buff)
 
   exports = gi.common.extend {}, crud
   exports.index = index

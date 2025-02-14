@@ -8,7 +8,7 @@ templateCache = require 'gulp-angular-templatecache'
 merge = require 'merge-stream'
 
 coffee = () ->
-  gulp.src(['client/index.coffee', 'client/**/*.coffee'])
+  gulp.src(['client/**/*.coffee', 'server/**/*.coffee'])
   .pipe(coffeelint())
   .pipe(coffeelint.reporter())
   .pipe(coffeeCompiler {bare: true}).on('error', gutil.log)

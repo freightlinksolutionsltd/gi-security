@@ -1,4 +1,4 @@
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 
 module.exports = (dal, environmentsModel) ->
 
@@ -12,7 +12,7 @@ module.exports = (dal, environmentsModel) ->
       parent:
         key: 'ObjectId'
         resourceType: 'String'
- 
+
   modelDefinition.schema = dal.schemaFactory modelDefinition
   model = dal.modelFactory modelDefinition
 
@@ -41,7 +41,7 @@ module.exports = (dal, environmentsModel) ->
           if setting and not err
             callback null, setting
           else
-       
+
             #roll up to the system setting
             getSystem name, systemId, callback
       else
@@ -86,7 +86,7 @@ module.exports = (dal, environmentsModel) ->
         if not environmentId?
           callback = environmentId
         callback err, null
-      
+
       else if not setting
         newSetting:
           key: name
@@ -112,7 +112,7 @@ module.exports = (dal, environmentsModel) ->
 
       else
         saveSetting setting, value, callback
-        
+
   exports = gi.common.extend {}, crud
   exports.get = get
   exports.set = set

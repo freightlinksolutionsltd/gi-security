@@ -2,9 +2,7 @@ node_modules/
 bower_components/
 coverage/
 temp/
-
 .env
-
 npm-debug.log
-
 .DS_Store
+.npmrc

@@ -1,5 +1,5 @@
 express = require 'express'
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 security = require '../../server'
 
 MongoStore = require('connect-mongo')(express)
@@ -28,13 +28,13 @@ app.configure ->
     secret: testConf.security.sessionSecret
 
   app.use express.session(sessionOpts)
-  
+
   app.use express.static dir
   app.use '/bower_modules', express.static path.normalize(__dirname + '../../../bower_modules')
   app.use '/bin', express.static path.normalize(__dirname + '../../../bin')
 
   #configure all of the security settings
-  
+
   app.models = {}
   app.controllers = {}
   app.middleware = {}

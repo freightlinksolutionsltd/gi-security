@@ -1,4 +1,4 @@
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 
 module.exports =
   crudModel: require './crud'

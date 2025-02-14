@@ -1,5 +1,5 @@
 _ = require 'underscore'
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 
 module.exports = (app) ->
   #Returns a middleware function that embelisshes

@@ -79,7 +79,7 @@ module.exports = (app) ->
     if req.isAuthenticated()
       addExtraUserInfo(req, res, next)
     else
-      exports._hmacAuth req, res, (err, user) =>
+      exports._hmacAuth req, res, (err, user) ->
         if user and (not err)
           addExtraUserInfo(req, res, next)
         else
@@ -173,7 +173,7 @@ module.exports = (app) ->
       )(req, res, next)
 
   userAction = (req, res, next) ->
-    exports.publicAction req, res, () =>
+    exports.publicAction req, res, () ->
       if req.user?
         permissionsMiddleware req, res, next
       else
@@ -194,7 +194,7 @@ module.exports = (app) ->
           next()
         else
           res.status(401).json({}) #Changed 'res.json(status,obj)' to 'res.status(status).json(obj)' for express 4.x compatibility
-  
+
   mgrAction = (req, res, next) ->
     userAction req, res, () ->
       isInRole 'Manager', req.user, (inRole) ->

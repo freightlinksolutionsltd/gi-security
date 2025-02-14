@@ -1,4 +1,4 @@
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 routes = require './routes'
 controllers = require './controllers'
 authentication = require './authentication'

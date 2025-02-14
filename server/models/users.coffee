@@ -1,6 +1,6 @@
 crypto = require 'crypto'
 bcrypt = require 'bcryptjs'
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 
 module.exports = (dal, options) ->
 
@@ -68,7 +68,7 @@ module.exports = (dal, options) ->
       cb "sendResetInstructions function not defined"
 
   generateToken = (callback) ->
-    crypto.randomBytes 18, (err, buf) =>
+    crypto.randomBytes 18, (err, buf) ->
       if err
         callback err
       else

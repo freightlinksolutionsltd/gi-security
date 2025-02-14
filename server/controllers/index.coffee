@@ -1,4 +1,4 @@
-gi = require 'gi-util'
+gi = require '@freightlinksolutionsltd/gi-util'
 user = require './user'
 activity = require './activity'
 file = require './file'
